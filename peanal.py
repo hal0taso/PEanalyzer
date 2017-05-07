@@ -19,6 +19,44 @@ for unpacking binary, struct.unpack('<fmt', v1,v2...)
 for packing binary, struct.pack('<fmt', v1, v2...)
 '''
 
+'''
+PE File Format 
+http://hp.vector.co.jp/authors/VA050396/tech_06.html
++-------------------------------+
+|  MS-DOS Header or Program     |
+|+-----------------------------+|
+|| MS-DOS Header               ||
+|+-----------------------------+|
+||MS-DOS Real-Mode Stub Program||
+|+-----------------------------+|
++-------------------------------+
+|  NT Header                    |
+|+-----------------------------+|
+|| Signature                   ||
+|+-----------------------------+|
+|| File Header                 ||
+|+-----------------------------+|
+|| Optional Header             ||
+|+-----------------------------+|
++-------------------------------+
+|  Section Table                |
+|+-----------------------------+|
+|| Section Header              ||
+|+-----------------------------+|
+||  ....                       ||
+|+-----------------------------+|
+|| Section Header              ||
+|+-----------------------------+|
++-------------------------------+
+| Section Data                  |
++-------------------------------+
+|   ....                        |
++-------------------------------+
+| Section Data                  |
++-------------------------------+
+
+'''
+
 def CheckSize(ins, _s):
     if(len(_s) != ins.s_SIZE):
             print('[!] StructSizeException :{name} is expect {exp_size} bytes input.'.format(
@@ -29,6 +67,13 @@ def CheckSize(ins, _s):
 def Banner(ins):
     print('{:=^60}'.format(ins.__class__.__name__))
 
+def CheckMagic(var, val, collect, wrong):
+    if(var == val):
+        print(collect)
+    else:
+        print(wrong)
+    
+# DOS Header
 class IMAGE_DOS_HEADER():
     
     '''
@@ -68,36 +113,39 @@ class IMAGE_DOS_HEADER():
         CheckSize(self, _s)
 
         # unpacking header
-        (self.e_magic,
-         self.e_cblp,
-         self.e_cp,
-         self.e_crlc,
-         self.e_cparhdr,
-         self.e_minalloc,
-         self.e_maxalloc,
-         self.e_ss,
-         self.e_sp,
-         self.e_csum,
-         self.e_ip,
-         self.e_cs,
-         self.e_lfarlc,
-         self.e_ovno,
-         self.e_res[0], self.e_res[1], self.e_res[2], self.e_res[3],
-         self.e_oemid,
-         self.e_oeminfo,
-         self.e_res2[0], self.e_res2[1], self.e_res2[2], self.e_res2[3], self.e_res2[4],
-         self.e_res2[5], self.e_res2[6], self.e_res2[7], self.e_res2[8], self.e_res2[9],
-         self.e_lfanew,
+        (
+            self.e_magic,
+            self.e_cblp,
+            self.e_cp,
+            self.e_crlc,
+            self.e_cparhdr,
+            self.e_minalloc,
+            self.e_maxalloc,
+            self.e_ss,
+            self.e_sp,
+            self.e_csum,
+            self.e_ip,
+            self.e_cs,
+            self.e_lfarlc,
+            self.e_ovno,
+            self.e_res[0], self.e_res[1], self.e_res[2], self.e_res[3],
+            self.e_oemid,
+            self.e_oeminfo,
+            self.e_res2[0], self.e_res2[1], self.e_res2[2], self.e_res2[3], self.e_res2[4],
+            self.e_res2[5], self.e_res2[6], self.e_res2[7], self.e_res2[8], self.e_res2[9],
+            self.e_lfanew,
         ) = struct.unpack('<30HI', _s)
 
-        if (self.e_magic != 0x5a4d):
-            print("[!] This file is NOT PE format.")
-            exit()
+        # if (self.e_magic != 0x5a4d):
+        #     print("[!] This file is NOT PE format.")
+        #     exit()
 
+        CheckMagic(self.e_magic, 0x5a4d, "[*] PE format.", "[!] Error: NOT PE format.")
     def putVal(self):
         print("[*] Magic number: {}".format(hex((self.e_magic))))
         print("[*] File address of new exe header: {}".format(hex(self.e_lfanew)))
 
+        
 class IMAGE_FILE_HEADER():
 
     '''
@@ -123,15 +171,16 @@ class IMAGE_FILE_HEADER():
         Banner(self)
         CheckSize(self, _s)
 
-        (self.Machine,
-         self.NumberOfSections,
-         self.TimeDateStamp,
-         self.PointerToSymbolTable,
-         self.NumberOfSymbols,
-         self.SizeOfOptionalHeader,
-         self.Characteristics,
+        (
+            self.Machine,
+            self.NumberOfSections,
+            self.TimeDateStamp,
+            self.PointerToSymbolTable,
+            self.NumberOfSymbols,
+            self.SizeOfOptionalHeader,
+            self.Characteristics,
          ) = struct.unpack('<2H3I2H', _s)
- 
+        
 
 
 class IMAGE_OPTIONAL_HEADER():
@@ -188,7 +237,8 @@ class IMAGE_OPTIONAL_HEADER():
     def __init__(self, _s):
         Banner(self)
         CheckSize(self, _s)
-        (# Standard fields
+        (
+            # Standard fields
             self.Magic,
             self.MajorLinkerVersion,
             self.MinorLinkerVersion,
@@ -219,12 +269,22 @@ class IMAGE_OPTIONAL_HEADER():
             self.SizeOfHeapReserve,
             self.SizeOfHeapCommit,
             self.LoaderFlags,
-            self.NumberOfRvaAndSizes,) = struct.unpack('<H2B6I3I6H4I2H6I', _s[:96])
+            self.NumberOfRvaAndSizes,
+        ) = struct.unpack('<H2B6I3I6H4I2H6I', _s[:96])
 
         self.DataDirectory = [None]*16
         for i in range(self.IMAGE_NUMBEROF_DIRECTORY_ENTRIES):
             self.DataDirectory[i] = IMAGE_DATA_DIRECTORY(_s[96+8*i:96+8*i+8])
 
+    def CheckBit(self):
+        if self.Magic == 0x10b:
+            print('[*] 32 Bit Executable')
+        elif self.Magic == 0x20b:
+            print('[*] 64 Bit Executable')
+        else:
+            print('[!] Failed: Excutable bit undefined.')
+            print('[!] IMAGE_OPTIONAL_HEADER.Magic: {}'.format(hex(self.Magic)))
+            
 class IMAGE_DATA_DIRECTORY():
 
     '''
@@ -238,7 +298,7 @@ class IMAGE_DATA_DIRECTORY():
     s_SIZE = 8
 
     def __init__(self, _s):
-        Banner(self)
+        # Banner(self)
         CheckSize(self, _s)
         (self.VirtualAddress,
          self.Size) = struct.unpack('<2I', _s)
@@ -246,7 +306,7 @@ class IMAGE_DATA_DIRECTORY():
 class IMAGE_NT_HEADERS():
 
     '''
-    // Size: 4 bytes + 20 bytes + 104 bytes = 128 bytes
+    // Size: 4 bytes + 20 bytes + 224 bytes = 248 bytes
     typedef struct _IMAGE_NT_HEADERS {
         DWORD Signature;
         IMAGE_FILE_HEADER FileHeader;
@@ -254,8 +314,9 @@ class IMAGE_NT_HEADERS():
     } IMAGE_NT_HEADER32, *PIMAGE_NT_HEADERS32;
     '''
 
+    # first, read signature and IMAGE_OPTIONAL_HEADER
     s_SIZE = 4 + IMAGE_FILE_HEADER.s_SIZE + IMAGE_OPTIONAL_HEADER.s_SIZE
-    
+
     def __init__(self, _s):
         Banner(self)
         CheckSize(self, _s)
@@ -267,8 +328,50 @@ class IMAGE_NT_HEADERS():
         self.FileHeader = IMAGE_FILE_HEADER(_s[4:4+IMAGE_FILE_HEADER.s_SIZE])
         self.OptionalHeader = IMAGE_OPTIONAL_HEADER(_s[-1 * IMAGE_OPTIONAL_HEADER.s_SIZE:])
 
-        
+
+    def listSection(self):
+        NumberOfSections = self.FileHeader.NumberOfSections
+
+
+class IMAGE_SECTION_HEADER():
+
+    '''
+    #define IMAGE_SIZEOF_SHORT_NAME 8
+
+    typedef struct _IMAGE_SECTION_HEADER {
+        BYTE Name[IMAGE_SIZEOF_SHORT_NAME];
+        union {
+                DWORD PhysicalAddress;
+                DWORD VirtualSize;
+        } Misc;
+        DWORD VirtualAddress;
+        DWORD SizeOfRawData;
+        DWORD PointerToRawData;
+        DWORD PointerToRelocations;
+        DWORD PointerToLinenumbers;
+        WORD NumberOfRelocations;
+        WORD NumberOfLinenumbers;
+        DWORD Characteristics;
+    } IMAGE_SECTION_HEADER,*PIMAGE_SECTION_HEADER;
+    '''
+
+    IMAGE_SIZEOF_SHORT_NAME = 8
     
+    def __init__(self, _s):
+        (
+            self.Name,
+            self.PhysicalAddress,
+            self.VirtualSize,
+            self.VirtualAddress,
+            self.SizeOfRawData,
+            self.PointerToRawData,
+            self.PointerToRelocations,
+            self.PointerToLinenumbers,
+            self.NumberOfRelocations,
+            self.NumberOfLinenumbers,
+            self.Characteristics,
+         )
+
 im = IMAGE_DOS_HEADER(r[0:64])
 im.putVal()
 PE_head = im.e_lfanew
@@ -276,16 +379,5 @@ inh = IMAGE_NT_HEADERS(r[PE_head:PE_head + IMAGE_NT_HEADERS.s_SIZE])
 
 print(struct.pack('<I',inh.Signature))
 
-
-print("[*] This file is PE.")
-
-def CheckBit(magic):
-    if magic == 0x10b:
-        print('[*] 32 Bit Executable')
-    elif magic == 0x20b:
-        print('[*] 32 Bit Executable')
-    else:
-        print('[!] Failed: Excutable bit undefined.')
-        print('[!] IMAGE_OPTIONAL_HEADER.Magic: {}'.format(hex(magic)))
-
-CheckBit(inh.OptionalHeader.Magic)
+inh.OptionalHeader.CheckBit()
+print('SizeOfInitializedData: {}'.format(hex(inh.OptionalHeader.SizeOfInitializedData)))
