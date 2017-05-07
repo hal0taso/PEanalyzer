@@ -5,7 +5,7 @@ for self-Educating and SecurityCamp2017.
 
 # usage
 ```
-peanal.py [target-file.exe]
+peanal.py [file]
 ```
 
 analyze pe header and extract string literal
