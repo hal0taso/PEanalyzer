@@ -19,15 +19,18 @@ for unpacking binary, struct.unpack('<fmt', v1,v2...)
 for packing binary, struct.pack('<fmt', v1, v2...)
 '''
 
-def CheckSize(classname, _s, num):
-    if(len(_s) != num):
-            print('[!] Failed to initialize {}. Check Byte size.'.format(classname))
+def CheckSize(ins, _s):
+    if(len(_s) != ins.s_SIZE):
+            print('[!] StructSizeException :{name} is expect {exp_size} bytes input.'.format(
+                name=ins.__class__.__name__, exp_size=ins.s_SIZE))
             print('[!] Input Size is: {}'.format(len(_s)))
             exit()
-    
+
+def Banner(ins):
+    print('{:=^60}'.format(ins.__class__.__name__))
 
 class IMAGE_DOS_HEADER():
-
+    
     '''
     // Size: 64 bytes
     typedef struct _IMAGE_DOS_HEADER{
@@ -54,10 +57,15 @@ class IMAGE_DOS_HEADER():
     } IMAGE_DOS_HEADER, *PIMAGE_DOS_HEADER;
     '''
 
+    s_SIZE = 64
+    
     def __init__(self, _s):
-        print("===== IMAGE_DOS_HEADER =====")
+        Banner(self)
+        
         self.e_res = [None]*4
         self.e_res2 = [None]*10
+
+        CheckSize(self, _s)
 
         # unpacking header
         (self.e_magic,
@@ -80,39 +88,15 @@ class IMAGE_DOS_HEADER():
          self.e_res2[0], self.e_res2[1], self.e_res2[2], self.e_res2[3], self.e_res2[4],
          self.e_res2[5], self.e_res2[6], self.e_res2[7], self.e_res2[8], self.e_res2[9],
          self.e_lfanew,
-        ) = struct.unpack('<HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHI', _s)
+        ) = struct.unpack('<30HI', _s)
 
         if (self.e_magic != 0x5a4d):
             print("[!] This file is NOT PE format.")
             exit()
 
-    def put_val(self):
-        print("[*] Magic number: {}".format(hex(self.e_magic)))
+    def putVal(self):
+        print("[*] Magic number: {}".format(hex((self.e_magic))))
         print("[*] File address of new exe header: {}".format(hex(self.e_lfanew)))
-        
-
-
-class IMAGE_NT_HEADERS32():
-
-    '''
-    // Size: 4 bytes + 22 bytes + 104 bytes = 130 bytes
-    typedef struct _IMAGE_NT_HEADERS {
-        DWORD Signature;
-        IMAGE_FILE_HEADER FileHeader;
-        IMAGE_OPTIONAL_HEADER32 OptionalHeader;
-    } IMAGE_NT_HEADER32, *PIMAGE_NT_HEADERS32;
-    '''
-
-    def __init__(self, _s):
-        print("===== IMAGE_NT_HEADER =====")
-        CheckSize("IMAGE_NT_HEADER32", _s, 128)
-        # if(len(_s) != 130):
-        #     print('[!] Failed to initialize IMAGE_NT_HEADER32. Check Byte size.')
-        #     print('[!] Input Size is: {}'.format(len(_s)))
-        #     exit()
-        (self.Signature,) = struct.unpack('<I', _s[:4])
-        self.FileHeader = IMAGE_FILE_HEADER(_s[4:24])
-        self.OptionalHeader = IMAGE_OPTIONAL_HEADER32(_s[24:])
 
 class IMAGE_FILE_HEADER():
 
@@ -129,13 +113,15 @@ class IMAGE_FILE_HEADER():
     } IMAGE_FILE_HEADER, *PIMAGE_FILE_HEADER;
     '''
 
+    s_SIZE = 20
+
     def __init__(self, _s):
         # if(len(_s) != 22):
         #     print('[!] Failed to initialize IMAGE_NT_HEADER32. Check Byte size.')
         #     print('[!] Input Size is: {}'.format(len(_s)))
         #     exit()
-        print("===== IMAGE_FILE_HEADER =====")
-        CheckSize('IMAGE_FILE_HEADER', _s, 20)
+        Banner(self)
+        CheckSize(self, _s)
 
         (self.Machine,
          self.NumberOfSections,
@@ -144,13 +130,14 @@ class IMAGE_FILE_HEADER():
          self.NumberOfSymbols,
          self.SizeOfOptionalHeader,
          self.Characteristics,
-         ) = struct.unpack('<HHIIIHH', _s)
+         ) = struct.unpack('<2H3I2H', _s)
  
 
-class IMAGE_OPTIONAL_HEADER32():
+
+class IMAGE_OPTIONAL_HEADER():
 
     '''
-    // Size: 104 bytes
+    // Size: 224 bytes
     typedef struct _IMAGE_OPTIOAL_HEADER {
         //
         // Standard fields.
@@ -168,7 +155,7 @@ class IMAGE_OPTIONAL_HEADER32():
 
         //
         // NT additional fields
-        // Size: 68 bytes + 8 bytes = 76 bytes
+        // Size: 68 bytes + (8 bytes * 16 = 128 bytes) = 196 bytes
 
         DWORD ImageBase;
         DWORD SectionAlignment;
@@ -195,10 +182,48 @@ class IMAGE_OPTIONAL_HEADER32():
     } IMAGE_OPTIONAL_HEADER32, *PIMAGE_OPTIONAL_HEADER32;
     '''
 
+    s_SIZE = 224
+    IMAGE_NUMBEROF_DIRECTORY_ENTRIES = 16
+    
     def __init__(self, _s):
-        print("===== IMAGE_OPTIONAL_HEADER32 =====")
-        CheckSize('IMAGE_OPTIONAL_HEADER32', _s, 104)
-        pass
+        Banner(self)
+        CheckSize(self, _s)
+        (# Standard fields
+            self.Magic,
+            self.MajorLinkerVersion,
+            self.MinorLinkerVersion,
+            self.SizeOfCode,
+            self.SizeOfInitializedData,
+            self.SizeOfUninitializedData,
+            self.AddressOfEntryPoint,
+            self.BaseOfCode,
+            self.BaseOfData,
+            # NT additional fields
+            self.ImageBase,
+            self.SectionAlignment,
+            self.FileAlignment,
+            self.MajorOperatingSystemVersion,
+            self.MinorOperatingSystemVersion,
+            self.MajorImageVersion,
+            self.MinorImageVersion,
+            self.MajorSubsystemVersion,
+            self.MinorSubsystemVersion,
+            self.Win32VersionValue,
+            self.SizeOfImage,
+            self.SizeOfHeaders,
+            self.CheckSum,
+            self.Subsystem,
+            self.DllCharacteristics,
+            self.SizeOfStackReserve,
+            self.SizeOfStackCommit,
+            self.SizeOfHeapReserve,
+            self.SizeOfHeapCommit,
+            self.LoaderFlags,
+            self.NumberOfRvaAndSizes,) = struct.unpack('<H2B6I3I6H4I2H6I', _s[:96])
+
+        self.DataDirectory = [None]*16
+        for i in range(self.IMAGE_NUMBEROF_DIRECTORY_ENTRIES):
+            self.DataDirectory[i] = IMAGE_DATA_DIRECTORY(_s[96+8*i:96+8*i+8])
 
 class IMAGE_DATA_DIRECTORY():
 
@@ -210,16 +235,57 @@ class IMAGE_DATA_DIRECTORY():
     } IMAGE_DATA_DIRECTORY, *PIMAGE_DATA_DIRECTORY;
     '''
 
+    s_SIZE = 8
+
     def __init__(self, _s):
-        print("===== IMAGE_DATA_DIRECTORY =====")
-        CheckSize('IMAGE_DATA_DIRECTORY', _s, 8)
+        Banner(self)
+        CheckSize(self, _s)
         (self.VirtualAddress,
-         self.Size) = struct.unpack('<II', _s)
+         self.Size) = struct.unpack('<2I', _s)
+
+class IMAGE_NT_HEADERS():
+
+    '''
+    // Size: 4 bytes + 20 bytes + 104 bytes = 128 bytes
+    typedef struct _IMAGE_NT_HEADERS {
+        DWORD Signature;
+        IMAGE_FILE_HEADER FileHeader;
+        IMAGE_OPTIONAL_HEADER32 OptionalHeader;
+    } IMAGE_NT_HEADER32, *PIMAGE_NT_HEADERS32;
+    '''
+
+    s_SIZE = 4 + IMAGE_FILE_HEADER.s_SIZE + IMAGE_OPTIONAL_HEADER.s_SIZE
+    
+    def __init__(self, _s):
+        Banner(self)
+        CheckSize(self, _s)
+        # if(len(_s) != 130):
+        #     print('[!] Failed to initialize IMAGE_NT_HEADER32. Check Byte size.')
+        #     print('[!] Input Size is: {}'.format(len(_s)))
+        #     exit()
+        (self.Signature,) = struct.unpack('<I', _s[:4])
+        self.FileHeader = IMAGE_FILE_HEADER(_s[4:4+IMAGE_FILE_HEADER.s_SIZE])
+        self.OptionalHeader = IMAGE_OPTIONAL_HEADER(_s[-1 * IMAGE_OPTIONAL_HEADER.s_SIZE:])
+
+        
     
 im = IMAGE_DOS_HEADER(r[0:64])
-im.put_val()
+im.putVal()
+PE_head = im.e_lfanew
+inh = IMAGE_NT_HEADERS(r[PE_head:PE_head + IMAGE_NT_HEADERS.s_SIZE])
 
-inh = IMAGE_NT_HEADERS32(r[im.e_lfanew:im.e_lfanew+128])
-print(hex(inh.Signature))
+print(struct.pack('<I',inh.Signature))
 
-# print("[*] This file is PE.")
+
+print("[*] This file is PE.")
+
+def CheckBit(magic):
+    if magic == 0x10b:
+        print('[*] 32 Bit Executable')
+    elif magic == 0x20b:
+        print('[*] 32 Bit Executable')
+    else:
+        print('[!] Failed: Excutable bit undefined.')
+        print('[!] IMAGE_OPTIONAL_HEADER.Magic: {}'.format(hex(magic)))
+
+CheckBit(inh.OptionalHeader.Magic)
