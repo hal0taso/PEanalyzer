@@ -3,9 +3,6 @@
 import sys
 import struct
 
-# ファイルをバイナリモードで読み込み
-fd = open(sys.argv[1], 'rb')
-r = fd.read()
 
 '''
 BYTE:  1byte
@@ -372,14 +369,19 @@ class IMAGE_SECTION_HEADER():
             self.Characteristics,
          )
 
-im = IMAGE_DOS_HEADER(r[0:64])
-im.putVal()
-PE_head = im.e_lfanew
-print(PE_head)
-print(PE_head + IMAGE_NT_HEADERS.s_SIZE)
-inh = IMAGE_NT_HEADERS(r[PE_head:PE_head + IMAGE_NT_HEADERS.s_SIZE])
+if __name__ == '__main__':
+    # ファイルをバイナリモードで読み込み
+    fd = open(sys.argv[1], 'rb')
+    r = fd.read()
 
-print(struct.pack('<I',inh.Signature))
-
-inh.OptionalHeader.CheckBit()
-print('SizeOfInitializedData: {}'.format(hex(inh.OptionalHeader.SizeOfInitializedData)))
+    im = IMAGE_DOS_HEADER(r[0:64])
+    im.putVal()
+    PE_head = im.e_lfanew
+    print(PE_head)
+    print(PE_head + IMAGE_NT_HEADERS.s_SIZE)
+    inh = IMAGE_NT_HEADERS(r[PE_head:PE_head + IMAGE_NT_HEADERS.s_SIZE])
+    
+    print(struct.pack('<I',inh.Signature))
+    
+    inh.OptionalHeader.CheckBit()
+    print('SizeOfInitializedData: {}'.format(hex(inh.OptionalHeader.SizeOfInitializedData)))
