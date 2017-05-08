@@ -81,7 +81,7 @@ class IMAGE_DOS_HEADER(Structure):
         ('e_res2',	WORD * 10),
         ('e_lfanew',	WORD),
         ]
-    
+
 
 class IMAGE_NT_HEADERS32(Structure):
     _fields_ = [

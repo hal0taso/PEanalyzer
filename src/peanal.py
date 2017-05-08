@@ -2,6 +2,8 @@
 
 import sys
 import struct
+from ctypes import *
+import winnt_def
 
 
 '''
@@ -369,8 +371,19 @@ class IMAGE_SECTION_HEADER():
             self.Characteristics,
          )
 
-if __name__ == '__main__':
-    # ファイルをバイナリモードで読み込み
+
+
+
+def test2():
+    fd = open(sys.argv[1], 'rb')
+    r = fd.read()
+
+    im = winnt_def.IMAGE_DOS_HEADER(list(struct.unpack('<30HI', r[0:64])))
+
+    print(im.e_magic)
+
+    
+def test1():
     fd = open(sys.argv[1], 'rb')
     r = fd.read()
 
@@ -385,3 +398,7 @@ if __name__ == '__main__':
     
     inh.OptionalHeader.CheckBit()
     print('SizeOfInitializedData: {}'.format(hex(inh.OptionalHeader.SizeOfInitializedData)))
+
+if __name__ == '__main__':
+    # ファイルをバイナリモードで読み込み
+    test2()
