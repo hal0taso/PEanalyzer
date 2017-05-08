@@ -10,6 +10,17 @@ SIZE_T    = c_ulong
 IMAGE_NUMBEROF_DIRECTORY_ENTRIES = 16
 IMAGE_SIZEOF_SHORT_NAME = 8
 
+class IMAGE_FILE_HEADER(Structure):
+    pass
+
+
+class IMAGE_OPTIONAL_HEADER32(Structure):
+    pass
+
+class IMAGE_DATA_DIRECTORY(Structure):
+    pass
+
+
 class IMAGE_DOS_HEADER(Structure):
     _fields_ = [
         ('e_magic',	WORD),
@@ -32,6 +43,7 @@ class IMAGE_DOS_HEADER(Structure):
         ('e_res2',	WORD * 10),
         ('e_lfanew',	WORD),
         ]
+    
 
 class IMAGE_NT_HEADERS32(Structure):
     _fields_ = [
@@ -40,6 +52,7 @@ class IMAGE_NT_HEADERS32(Structure):
         ('OptionalHeader',	IMAGE_OPTIONAL_HEADER32)
     ]
 
+    
 class IMAGE_FILE_HEADER(Structure):
     _fields_ = [
         ('Macine',			WORD),
@@ -51,6 +64,7 @@ class IMAGE_FILE_HEADER(Structure):
         ('Characteristics', 		WORD),
     ]
 
+    
 class IMAGE_OPTIONAL_HEADER32(Structure):
     _fields_ = [
         # Standard fields.
@@ -87,11 +101,16 @@ class IMAGE_OPTIONAL_HEADER32(Structure):
         ('DataDirectory',		IMAGE_DATA_DIRECTORY * IMAGE_NUMBEROF_DIRECTORY_ENTRIES),
     ]
 
+    
 class IMAGE_DATA_DIRECTORY(Structure):
     _fields_ = [
         ('VirtualAddress',	DWORD),
         ('Size',		DWORD),
     ]
+
+    
+class MISC(Union):
+    pass
 
 
 class IMAGE_SECTION_HEADER(Structure):
@@ -108,6 +127,7 @@ class IMAGE_SECTION_HEADER(Structure):
         ('Characteristics',		DWORD),
     ]
 
+    
 class MISC(Union):
     _fields_ = [
         ('PhysicalAddress',	DWORD),
