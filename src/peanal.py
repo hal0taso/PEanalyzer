@@ -311,7 +311,7 @@ class IMAGE_NT_HEADERS():
         DWORD Signature;
         IMAGE_FILE_HEADER FileHeader;
         IMAGE_OPTIONAL_HEADER32 OptionalHeader;
-    } IMAGE_NT_HEADER32, *PIMAGE_NT_HEADERS32;
+    } IMAGE_NT_HEADERS32, *PIMAGE_NT_HEADERS32;
     '''
 
     # first, read signature and IMAGE_OPTIONAL_HEADER
