@@ -99,3 +99,7 @@ ENV/
 
 # zipfile
 *.zip
+
+# ida
+*.id[0-9]
+*.nam
