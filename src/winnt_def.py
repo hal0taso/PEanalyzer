@@ -1,10 +1,12 @@
 from ctypes import *
+import io
 
 # Map the Microsoft types to ctypes for clarity
-BYTE      = c_ubyte
-WORD      = c_ushort
-DWORD     = c_ulong
-SIZE_T    = c_ulong
+BYTE    = c_ubyte
+WORD    = c_uint16
+DWORD   = c_uint32
+LONG	= c_uint32
+SIZE_T  = c_uint32
 
 # Constants
 IMAGE_DOS_SIGNATURE			= 0x5A4D
@@ -79,16 +81,10 @@ class IMAGE_DOS_HEADER(Structure):
         ('e_oemid',	WORD),
         ('e_oeminfo',	WORD),
         ('e_res2',	WORD * 10),
-        ('e_lfanew',	WORD),
-        ]
-
-
-class IMAGE_NT_HEADERS32(Structure):
-    _fields_ = [
-        ('Signature',		DWORD),
-        ('FileHeader',		IMAGE_FILE_HEADER),
-        ('OptionalHeader',	IMAGE_OPTIONAL_HEADER32)
+        ('e_lfanew',	LONG),
     ]
+
+
 
     
 class IMAGE_FILE_HEADER(Structure):
@@ -103,6 +99,14 @@ class IMAGE_FILE_HEADER(Structure):
     ]
 
     
+    
+class IMAGE_DATA_DIRECTORY(Structure):
+    _fields_ = [
+        ('VirtualAddress',	DWORD),
+        ('Size',		DWORD),
+    ]
+
+
 class IMAGE_OPTIONAL_HEADER32(Structure):
     _fields_ = [
         # Standard fields.
@@ -139,16 +143,14 @@ class IMAGE_OPTIONAL_HEADER32(Structure):
         ('DataDirectory',		IMAGE_DATA_DIRECTORY * IMAGE_NUMBEROF_DIRECTORY_ENTRIES),
     ]
 
-    
-class IMAGE_DATA_DIRECTORY(Structure):
-    _fields_ = [
-        ('VirtualAddress',	DWORD),
-        ('Size',		DWORD),
-    ]
+
 
     
 class MISC(Union):
-    pass
+    _fields_ = [
+        ('PhysicalAddress',	DWORD),
+        ('VirtualSize',		DWORD),
+    ]
 
 
 class IMAGE_SECTION_HEADER(Structure):
@@ -166,8 +168,9 @@ class IMAGE_SECTION_HEADER(Structure):
     ]
 
     
-class MISC(Union):
+class IMAGE_NT_HEADERS32(Structure):
     _fields_ = [
-        ('PhysicalAddress',	DWORD),
-        ('VirtualSize',		DWORD),
+        ('Signature',		DWORD),
+        ('FileHeader',		IMAGE_FILE_HEADER),
+        ('OptionalHeader',	IMAGE_OPTIONAL_HEADER32)
     ]
