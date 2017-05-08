@@ -7,6 +7,10 @@ for self-Educating and SecurityCamp2017.
 ```
 python3 peanal.py [file]
 ```
+# Overview
+まず、PEファイルフォーマットについて調べるところから始めた。以下の情報は、インプレスジャパン出版であるリバースエンジニアリングバイブル-コード再創造の美学-とO'REILLY出版であるアナライジング・マルウェアに記載してあることをもとに、自分で検証したことなどを含めて記載してある。最初に、PE ファイルフォーマットの概要について大枠を述べる。PEファイルフォーマットは、ファイルの最初から順にDOS MZヘッダ、DOSスタブ、PEヘッダと続き、その後から各セクションごとにセクションテーブルと呼ばれる、種類ごとにまとめられたセクションと呼ばれる領域のサイズや開始アドレスなどの情報が指定されたヘッダーが存在する。その後にセクションごとに情報が格納されいる。このセクションにはプログラムのコードやデータ、。リソース情報などが含まれており、セクションはその役割に応じていくつかの種類がある。
+次に、各ヘッダーに関して順に説明する。まずはDOS MZヘッダである。DOS MZヘッダはPEファイルフォーマットの先頭にある領域で、winnt.h内ではIMAGE_DOS_HEADERとして定義されている。このIMAGE_DOS_HEADER構造体で重要なのは最初のメンバであるe_magicと最後のメンバであるe_lfanewの２つのみである。e_magicは0x4D,0x5Aという2バイトの値で、ASCII文字になおすと"MZ"である。余談だが、この"MZ"はPEを作ったMark Zbikowiski氏のイニシャルである。この値はファイルがPEファイルかどうかの確認としてよく使われる。e_lfanewは実際のPEのオフセットがどこにあるかを示す。つまり、PEヘッダーであるIMAGE_NT_HEADERがどこに存在するのかを示す。PEファイルフォーマットの各ヘッダの構造体にはe_magicのようなマジックナンバーがいくつか存在しており、今回自作したプログラムでは、今後汎用性を高めていくためと、うまくファイルを読み込めているかの確認を兼ねて各ヘッダのマジックナンバーを照らし合わせることで、読み込んだファイルやデータが正しく解析されているか確かめながら解析した。
+次に、PEヘッダについて説明する。PEヘッダはwinnt.hでIMAGE_NT_HEADERSとして定義されており、Signature,FileHeader,OptionalHeaderの3つのメンバから構成される。SignatureはPEヘッダの先頭4バイトを占め、PEファイルの場合は0x50,0x45,0x00,0x00となっており、これはASCII文字で"PE"である。
 
 analyze pe header and extract string literal
 
@@ -31,7 +35,7 @@ PE（Portable Executable）ファイルフォーマットの構造を調べ、�
 ### 大変だったこと
 
 - `IMAGE_OPTIONAL_HEADER32`構造体のサイズが、32bitと64bitで違うため、`IMAGE_FILE_HEADER`構造体中の`SizeOfOptionalHeader`メンバを参照して`IMAGE_NT_HEADERS`構造体のサイズを決める必要がある。(未実装)
-- 共用体のPythonでの実装(ctypesを使えば良い？？)
+- 
 
 ### PE File Format 
 from http://hp.vector.co.jp/authors/VA050396/index.html
