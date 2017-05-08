@@ -375,6 +375,8 @@ class IMAGE_SECTION_HEADER():
 im = IMAGE_DOS_HEADER(r[0:64])
 im.putVal()
 PE_head = im.e_lfanew
+print(PE_head)
+print(PE_head + IMAGE_NT_HEADERS.s_SIZE)
 inh = IMAGE_NT_HEADERS(r[PE_head:PE_head + IMAGE_NT_HEADERS.s_SIZE])
 
 print(struct.pack('<I',inh.Signature))
