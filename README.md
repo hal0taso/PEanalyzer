@@ -34,3 +34,6 @@ PE（Portable Executable）ファイルフォーマットの構造を調べ、�
 - 共用体のPythonでの実装(ctypesを使えば良い？？)
 
 ### PE File Format 
+from http://hp.vector.co.jp/authors/VA050396/index.html
+
+![](/Users/hal0taso/Desktop/CLASS/Seccamp2017/dotNet-A-6/img/pe.png)
