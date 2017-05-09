@@ -49,6 +49,12 @@ IMAGE_SUBSYSTEM_NATIVE			= 1
 IMAGE_SUBSYSTEM_WINDOWS_GUI		= 2
 IMAGE_SUBSYSTEM_WINDOWS_CUI		= 3
 
+MagicNumberDict = dict(
+    [
+        ('IMAGE_DOS_HEADER', IMAGE_DOS_SIGNATURE),
+    ]
+)
+
 
 class IMAGE_FILE_HEADER(Structure):
     pass
