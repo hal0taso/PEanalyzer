@@ -45,16 +45,16 @@ def main():
 
     print('Section Table start from: {}'.format(hex(section_table)))
     ish_array = (IMAGE_SECTION_HEADER * ifh.NumberOfSections)()
+    print('{:=^60}'.format('Section: {}'.format(ifh.NumberOfSections)))
 
     for i in range(0, ifh.NumberOfSections):
         section_header = section_table + (i * sizeof(IMAGE_SECTION_HEADER))
         io.BytesIO(r[section_header:section_header + sizeof(IMAGE_SECTION_HEADER)]).readinto(ish_array[i])
 
-        print('========== Section Table : {} =========='.format(ifh.NumberOfSections))
         print('{:02d} {}'.format(i + 1, ''.join([chr(name) for name in ish_array[i].Name])))
-        print('    raw data offsets: 		0x{:08x}'.format(ish_array[i].PointerToRawData))
-        print('    raw data size:		0x{:08x}'.format(ish_array[i].SizeOfRawData))
-        print('    Characteristics:		0x{:08x}'.format(ish_array[i].Characteristics))
+        print('    raw data offsets:            0x{:08x}'.format(ish_array[i].PointerToRawData))
+        print('    raw data size:               0x{:08x}'.format(ish_array[i].SizeOfRawData))
+        print('    Characteristics:             0x{:08x}'.format(ish_array[i].Characteristics))
         for j in range(len(iCharacteristics)):
             if(ish_array[i].Characteristics & iCharacteristics[j]):
                 print('        {}'.format(pcszCharacteristics[j]))
@@ -64,12 +64,12 @@ def infoOptionalHeader(ioh):
     size = sizeof(ioh)
     name = IMAGE_OPTIONAL_HEADER32.__name__
     Banner(ioh)
-    print('    Magic:		        0x{:04x}'.format(ioh.Magic))
-    print('    SizeOfCode:              0x{:08x}'.format(ioh.SizeOfCode))
-    print('    SizeOfInitializedData:   0x{:08x}'.format(ioh.SizeOfInitializedData))
-    print('    SizeOfUninitializedData: 0x{:08x}'.format(ioh.SizeOfUninitializedData))
-    print('    ImageBase:               0x{:08x}'.format(ioh.ImageBase))
-    print('    AddressOfEntryPoint:     0x{:08x}'.format(ioh.AddressOfEntryPoint))
+    print('    Magic:                       0x{:04x}'.format(ioh.Magic))
+    print('    SizeOfCode:                  0x{:08x}'.format(ioh.SizeOfCode))
+    print('    SizeOfInitializedData:       0x{:08x}'.format(ioh.SizeOfInitializedData))
+    print('    SizeOfUninitializedData:     0x{:08x}'.format(ioh.SizeOfUninitializedData))
+    print('    ImageBase:                   0x{:08x}'.format(ioh.ImageBase))
+    print('    AddressOfEntryPoint:         0x{:08x}'.format(ioh.AddressOfEntryPoint))
     
 
 if __name__ == '__main__':

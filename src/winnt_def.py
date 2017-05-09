@@ -79,16 +79,16 @@ iCharacteristics = [
 
 
 pcszCharacteristics = [
-    'Code',
-    'InitializedData',
-    'UninitializedData',
-    'MemDiscardable',
-    'MemNotCached',
-    'MemNotPaged',
-    'MemShared',
-    'MemExecute',
-    'MemRead',
-    'MemWrite',
+    'CODE',
+    'INITIALIZED_DATA',
+    'UNINITIALIZED_DATA',
+    'MEM_DISCARDABLE',
+    'MEM_NOT_CACHED',
+    'MEM_NOT_PAGED',
+    'MEM_SHARED',
+    'MEM_EXECUTE',
+    'MEM_READ',
+    'MEM_WRITE',
 ]
 
 
