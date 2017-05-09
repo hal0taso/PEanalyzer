@@ -107,7 +107,7 @@ class IMAGE_DOS_HEADER(Structure):
     _fields_ = [
         ('e_magic',	WORD),
         ('e_cblp',	WORD),
-        ('e-cp',	WORD),
+        ('e_cp',	WORD),
         ('e_crlc',	WORD),
         ('e_cparhdr',	WORD),
         ('e_minalloc',	WORD),
@@ -131,7 +131,7 @@ class IMAGE_DOS_HEADER(Structure):
     
 class IMAGE_FILE_HEADER(Structure):
     _fields_ = [
-        ('Macine',			WORD),
+        ('Machine',			WORD),
         ('NumberOfSections',		WORD),
         ('TimeDateStamp',		DWORD),
         ('PointerToSymbolTable',	DWORD),
@@ -157,6 +157,7 @@ class IMAGE_OPTIONAL_HEADER32(Structure):
         ('MinorLinkerVersion',		BYTE),
         ('SizeOfCode',			DWORD),
         ('SizeOfInitializedData',	DWORD),
+        ('SizeOfUninitializedData',	DWORD),
         ('AddressOfEntryPoint',		DWORD),
         ('BaseOfCode',			DWORD),
         ('BaseOfData',			DWORD),

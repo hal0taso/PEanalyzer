@@ -4,8 +4,8 @@ from winnt_def import *
 
 
 
-def Banner(ins):
-    print('{:=^60}'.format(ins.__class__.__name__))
+def Banner(s):
+    print('{:=^60}'.format(s.__class__.__name__))
 
 
 def magic_chk(magic_num, keys):
@@ -37,7 +37,8 @@ def main():
     ifh = inh.FileHeader
     ioh = inh.OptionalHeader
 
-    print('IMAGE_OPTIONAL_HEADER.Magic:		 0x{:04x}'.format(ioh.Magic))
+    infoOptionalHeader(ioh)
+    
     print('IMAGE_FILE_HEADER.NumberOfSections:	 0x{:04x}'.format(ifh.NumberOfSections))
 
     section_table = pe_header + sizeof(IMAGE_NT_HEADERS32)
@@ -57,7 +58,19 @@ def main():
         for j in range(len(iCharacteristics)):
             if(ish_array[i].Characteristics & iCharacteristics[j]):
                 print('        {}'.format(pcszCharacteristics[j]))
-                
+
+
+def infoOptionalHeader(ioh):
+    size = sizeof(ioh)
+    name = IMAGE_OPTIONAL_HEADER32.__name__
+    Banner(ioh)
+    print('    Magic:		        0x{:04x}'.format(ioh.Magic))
+    print('    SizeOfCode:              0x{:08x}'.format(ioh.SizeOfCode))
+    print('    SizeOfInitializedData:   0x{:08x}'.format(ioh.SizeOfInitializedData))
+    print('    SizeOfUninitializedData: 0x{:08x}'.format(ioh.SizeOfUninitializedData))
+    print('    ImageBase:               0x{:08x}'.format(ioh.ImageBase))
+    print('    AddressOfEntryPoint:     0x{:08x}'.format(ioh.AddressOfEntryPoint))
+    
 
 if __name__ == '__main__':
     main()
