@@ -31,6 +31,24 @@ IMAGE_DIRECTORY_ENTRY_IAT		= 12	# Import Address Table
 IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT	= 13	# Delay Load Import Descriptors
 IMAGE_DIRECTORY_ENTRY_COM_DESCRIPTOR	= 14	# COM Runtime descriptor
 
+iIMAGE_NUMBER_OF_DERECTORY = [
+    'EXPORT',
+    'IMPORT',
+    'RESOURCE',
+    'EXCEPTION',
+    'SECURITY',
+    'BASERELOC',
+    'DEBUG',
+    'ARCHITECTURE',
+    'GLOBALPTR',
+    'TLS',
+    'LOAD_CONFIG',
+    'BOUND_IMPORT',
+    'IAT',
+    'DELAY_IMPORT',
+    'COM_DESCRIPTER',
+    ]
+
 IMAGE_SIZEOF_SHORT_NAME 		= 8
 
 # IMAGE_FILE_HEADER.Characteristics
