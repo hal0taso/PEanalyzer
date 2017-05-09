@@ -114,8 +114,10 @@ class IMAGE_FILE_HEADER(Structure):
     pass
 
 
+
 class IMAGE_OPTIONAL_HEADER32(Structure):
     pass
+
 
 class IMAGE_DATA_DIRECTORY(Structure):
     pass
@@ -207,7 +209,7 @@ class IMAGE_OPTIONAL_HEADER32(Structure):
 
 
     
-class MISC(Union):
+class Misc(Union):
     _fields_ = [
         ('PhysicalAddress',	DWORD),
         ('VirtualSize',		DWORD),
@@ -217,7 +219,7 @@ class MISC(Union):
 class IMAGE_SECTION_HEADER(Structure):
     _fields_ = [
         ('Name',			BYTE * IMAGE_SIZEOF_SHORT_NAME),
-        ('Misc',			MISC),
+        ('Misc',			Misc),
         ('VirtualAddress',		DWORD),
         ('SizeOfRawData',		DWORD),
         ('PointerToRawData',		DWORD),
@@ -234,4 +236,44 @@ class IMAGE_NT_HEADERS32(Structure):
         ('Signature',		DWORD),
         ('FileHeader',		IMAGE_FILE_HEADER),
         ('OptionalHeader',	IMAGE_OPTIONAL_HEADER32)
+    ]
+
+    
+class _U(Union):
+    _fields_ = [
+        ('Characteristics',	DWORD),
+        ('OriginalFirstThunk',	DWORD),
+    ]
+
+    
+class IMAGE_IMPORT_DESCRIPTER(Structure):
+    _anonymous_ = ('u',)
+    _fields_ = [
+        ('u',			_U),
+        ('TimeDateStamp',	DWORD),
+        ('ForwarderChain',	DWORD),
+        ('Name',		DWORD),
+        ('FirstThunk',		DWORD),
+    ]
+
+
+
+class u1(Union):
+    _fields_ = [
+        ('ForwarderString',	DWORD), # PBYTE
+        ('Function',		DWORD), # PDWORD
+        ('Ordinal',		DWORD),
+        ('AddressOfData',	DWORD), # PIMAGE_IMPORT_BY_NAME
+    ]
+
+class IMAGE_THUNK_DATA32(Structure):
+    _fields_ = [
+        ('u1',	u1),
+    ]
+
+
+class IMAGE_IMPORT_BY_NAME(Structure):
+    _fields_ = [
+        ('Hint',	WORD),
+        ('Name',	BYTE),
     ]
