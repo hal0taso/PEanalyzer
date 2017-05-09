@@ -8,6 +8,7 @@ DWORD   = c_uint32
 LONG	= c_uint32
 SIZE_T  = c_uint32
 
+
 # Constants
 IMAGE_DOS_SIGNATURE			= 0x5A4D
 
@@ -52,8 +53,43 @@ IMAGE_SUBSYSTEM_WINDOWS_CUI		= 3
 MagicNumberDict = dict(
     [
         ('IMAGE_DOS_HEADER', IMAGE_DOS_SIGNATURE),
+        
     ]
 )
+
+# from MSDN(https://msdn.microsoft.com/ja-jp/library/windows/desktop/ms680341(v=vs.85).aspx)
+IMAGE_SCN_CNT_CODE 			= 0x00000020
+IMAGE_SCN_CNT_INITIALIZED_DATA 		= 0x00000040
+IMAGE_SCN_CNT_UNINITIALIZED_DATA	= 0x00000080
+IMAGE_SCN_MEM_DISCARDABLE		= 0x02000000
+IMAGE_SCN_MEM_NOT_CACHED		= 0x04000000
+IMAGE_SCN_MEM_NOT_PAGED			= 0x08000000
+IMAGE_SCN_MEM_SHARED			= 0x10000000
+IMAGE_SCN_MEM_EXECUTE			= 0x20000000
+IMAGE_SCN_MEM_READ			= 0x40000000
+IMAGE_SCN_MEM_WRITE			= 0x80000000
+
+
+
+iCharacteristics = [
+    IMAGE_SCN_CNT_CODE, IMAGE_SCN_CNT_INITIALIZED_DATA, IMAGE_SCN_CNT_UNINITIALIZED_DATA,
+    IMAGE_SCN_MEM_DISCARDABLE, IMAGE_SCN_MEM_NOT_CACHED, IMAGE_SCN_MEM_NOT_PAGED,
+    IMAGE_SCN_MEM_SHARED, IMAGE_SCN_MEM_EXECUTE, IMAGE_SCN_MEM_READ, IMAGE_SCN_MEM_WRITE
+]
+
+
+pcszCharacteristics = [
+    'Code',
+    'InitializedData',
+    'UninitializedData',
+    'MemDiscardable',
+    'MemNotCached',
+    'MemNotPaged',
+    'MemShared',
+    'MemExecute',
+    'MemRead',
+    'MemWrite',
+]
 
 
 class IMAGE_FILE_HEADER(Structure):
