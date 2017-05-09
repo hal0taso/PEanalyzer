@@ -42,23 +42,19 @@ def main():
     print('IMAGE_FILE_HEADER.NumberOfSections:	 0x{:04x}'.format(ifh.NumberOfSections))
 
     section_table = pe_header + sizeof(IMAGE_NT_HEADERS32)
-
-    print('Section Table start from: {}'.format(hex(section_table)))
     ish_array = (IMAGE_SECTION_HEADER * ifh.NumberOfSections)()
-    print('{:=^60}'.format('Section: {}'.format(ifh.NumberOfSections)))
 
-    for i in range(0, ifh.NumberOfSections):
-        section_header = section_table + (i * sizeof(IMAGE_SECTION_HEADER))
-        io.BytesIO(r[section_header:section_header + sizeof(IMAGE_SECTION_HEADER)]).readinto(ish_array[i])
+    infoSectionTable(ish_array, section_table, ifh.NumberOfSections, r)
 
-        print('{:02d} {}'.format(i + 1, ''.join([chr(name) for name in ish_array[i].Name])))
-        print('    raw data offsets:            0x{:08x}'.format(ish_array[i].PointerToRawData))
-        print('    raw data size:               0x{:08x}'.format(ish_array[i].SizeOfRawData))
-        print('    Characteristics:             0x{:08x}'.format(ish_array[i].Characteristics))
-        for j in range(len(iCharacteristics)):
-            if(ish_array[i].Characteristics & iCharacteristics[j]):
-                print('        {}'.format(pcszCharacteristics[j]))
 
+    
+    
+    print('{:=^60}'.format(''.join([chr(name) for name in ish_array[0].Name])))
+    index = ish_array[0].PointerToRawData
+    print(r[index:index + ish_array[0].SizeOfRawData])
+        
+
+    
 
 def infoOptionalHeader(ioh):
     size = sizeof(ioh)
@@ -70,7 +66,27 @@ def infoOptionalHeader(ioh):
     print('    SizeOfUninitializedData:     0x{:08x}'.format(ioh.SizeOfUninitializedData))
     print('    ImageBase:                   0x{:08x}'.format(ioh.ImageBase))
     print('    AddressOfEntryPoint:         0x{:08x}'.format(ioh.AddressOfEntryPoint))
+    print('    BaseOfCode:                  0x{:08x}'.format(ioh.BaseOfCode))
+    print('    BaseOfData:                  0x{:08x}'.format(ioh.BaseOfData))
+    print('    SectionAlignment:            0x{:08x}'.format(ioh.SectionAlignment))
+    print('    FileAlignment:               0x{:08x}'.format(ioh.FileAlignment))
     
+
+def infoSectionTable(ish_array, section_table, section_num, r):
+    print('{:=^60}'.format('SectionTable: {}'.format(section_num)))
+    print('Section Table start from: 0x{:08x}'.format(section_table))
+    for i in range(0, section_num):
+        section_header = section_table + (i * sizeof(IMAGE_SECTION_HEADER))
+        io.BytesIO(r[section_header:section_header + sizeof(IMAGE_SECTION_HEADER)]).readinto(ish_array[i])
+
+        print('{:02d} {}'.format(i + 1, ''.join([chr(name) for name in ish_array[i].Name])))
+        print('    raw data offsets:            0x{:08x}'.format(ish_array[i].PointerToRawData))
+        print('    raw data size:               0x{:08x}'.format(ish_array[i].SizeOfRawData))
+        print('    Characteristics:             0x{:08x}'.format(ish_array[i].Characteristics))
+        for j in range(len(iCharacteristics)):
+            if(ish_array[i].Characteristics & iCharacteristics[j]):
+                print('        {}'.format(pcszCharacteristics[j]))
+
 
 if __name__ == '__main__':
     main()
