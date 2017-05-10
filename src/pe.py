@@ -13,6 +13,26 @@ def magic_chk(magic_num, keys):
     for dic in MagicNumberDict:
         pass
 
+def search_str(data):
+    print('{:=^60}'.format('START STRING SEARCH'))
+    lstr = []
+    text = ''
+    for b in data:
+        if 0x20 <= b <= 0x7e:
+            text += chr(b)
+        elif len(text) == 1: # and ord(text) == 0x20:
+            text = ''
+        elif len(text) > 0:
+            lstr.append(text)
+            text = ''
+        else:
+            pass
+    else:
+        for s in lstr:
+            print(s)
+    print('{:=^60}'.format('END'))
+
+
         
 # read pefile
 def main():
@@ -46,14 +66,13 @@ def main():
 
     infoSectionTable(ish_array, section_table, ifh.NumberOfSections, r)
 
+    search_str(r[ish_array[0].PointerToRawData:ish_array[0].PointerToRawData + ish_array[0].SizeOfRawData])
     fd.close()
 
 
 #    print('{:=^60}'.format(''.join([chr(name) for name in ish_array[0].Name])))
 #    index = ish_array[0].PointerToRawData
 #    print(r[index:index + ish_array[0].SizeOfRawData])
-
-
 
 
 
