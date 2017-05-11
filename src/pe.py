@@ -3,7 +3,7 @@ import sys
 import struct
 from winnt_def import *
 
-printflag=False
+
 
 def Banner(s):
     print('{:=^60}'.format(s.__class__.__name__))
@@ -37,6 +37,11 @@ def search_str(data):
 def main():
     # read pefile
     fd = open(sys.argv[1], 'rb')
+    printflag=False
+
+    if len(sys.argv) == 3 and sys.argv[2] == 'p':
+        printflag = True
+        
     r = fd.read()
 
     # まずはIMAGE_DOS_HEADERから
@@ -85,7 +90,7 @@ def infoNTHeader(inh, printflag=False):
         Banner(inh)
         bsig = struct.pack('<I', inh.Signature)
         signature = ''.join(chr(c) for c in bsig)
-        print('    Signature:                   0x{:04x} (ASCII:{})'.format(inh.Signature, signature))
+        print('    Signature:                   0x{:08x} (ASCII:{})'.format(inh.Signature, signature))
     if not inh.Signature == 0x4550:
         print('[!] Error: This File is Not PE.')
         exit()
