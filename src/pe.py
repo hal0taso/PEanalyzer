@@ -1,12 +1,7 @@
-import io
 import sys
-import struct
 from winnt_def import *
 
 
-
-def Banner(s):
-    print('{:=^60}'.format(s.__class__.__name__))
 
 
 def search_str(data):
@@ -37,7 +32,6 @@ def search_str(data):
 def main():
     # read pefile
     fd = open(sys.argv[1], 'rb')
-    printflag=False
 
     if len(sys.argv) == 3 and sys.argv[2] == 'p':
         printflag = True
@@ -46,8 +40,8 @@ def main():
 
     # まずはIMAGE_DOS_HEADERから
     idh = IMAGE_DOS_HEADER()
-    io.BytesIO(r[:sizeof(IMAGE_DOS_HEADER)]).readinto(idh)
-    idh.info(printflag)
+    sinit(idh, r)
+    idh.info()
     
     # PEヘッダの位置を取得
     pe_header = idh.e_lfanew
@@ -55,23 +49,29 @@ def main():
     # IMAGE_NT_HEADERS32を取得
     inh = IMAGE_NT_HEADERS32()
     io.BytesIO(r[pe_header:pe_header + sizeof(IMAGE_NT_HEADERS32)]).readinto(inh)
-
-    inh.info(printflag)
-
+    inh.info()
     
     ifh = inh.FileHeader
     ioh = inh.OptionalHeader
 
-    ioh.info(printflag)
+    ioh.info()
     
-
     section_table = pe_header + sizeof(IMAGE_NT_HEADERS32)
-    ish_array = (IMAGE_SECTION_HEADER * ifh.NumberOfSections)()
+    
+    ish = aIMAGE_SECTION_HEADER(ifh.NumberOfSections, r, section_table)
 
-    ish.info(ish_array, section_table, ifh.NumberOfSections, r, printflag)
+    ish.info()
 
     
-    search_str(r[ish_array[0].PointerToRawData:ish_array[0].PointerToRawData + ish_array[0].SizeOfRawData])
+
+    for i in range(ish.section_num):
+        name = ''.join([chr(name) for name in ish.array[i].Name])
+        print('Name: {}, Length: {}'.format(name, len(name)))
+                       
+        if (''.join([chr(name) for name in ish.array[i].Name]) == '.text'):
+            search_str(r[ish.array[i].PointerToRawData:ish.array[i].PointerToRawData + ish.array[i].SizeOfRawData])
+
+
     fd.close()
 
 
