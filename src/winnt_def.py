@@ -1,5 +1,10 @@
 from ctypes import *
 import io
+import struct
+
+def Banner(s):
+    print('{:=^60}'.format(s.__class__.__name__))
+
 
 # Map the Microsoft types to ctypes for clarity
 BYTE    = c_ubyte
@@ -88,7 +93,6 @@ IMAGE_SCN_MEM_READ			= 0x40000000
 IMAGE_SCN_MEM_WRITE			= 0x80000000
 
 
-
 iCharacteristics = [
     IMAGE_SCN_CNT_CODE, IMAGE_SCN_CNT_INITIALIZED_DATA, IMAGE_SCN_CNT_UNINITIALIZED_DATA,
     IMAGE_SCN_MEM_DISCARDABLE, IMAGE_SCN_MEM_NOT_CACHED, IMAGE_SCN_MEM_NOT_PAGED,
@@ -109,10 +113,35 @@ pcszCharacteristics = [
     'MEM_WRITE',
 ]
 
+def sinit(s, data, ptr=0):
+    io.BytesIO(data[ptr:ptr+sizeof(s)]).readinto(s)
 
+class aIMAGE_SECTION_HEADER:
+
+    '''
+    aIMAGE_SECTION_HEADER:
+    Return list of IMAGE_SECTION_HEADER.
+    
+    e.g.
+    array_ish = aIMAGE_SECTION_HEADER(image_file_header.NumberOfSections, data, section_table_ptr)
+    '''
+    
+    def __init__(self, section_num, data, ptr):
+        self.array = (IMAGE_SECTION_HEADER * section_num)()
+        self.section_num = section_num
+        self.section_table = ptr
+        for i in range(section_num):
+            sinit(self.array[i], data, ptr)
+            ptr += sizeof(IMAGE_SECTION_HEADER)
+        
+    def info(self):
+        print('{:=^60}'.format('SectionTable: {}'.format(self.section_num)))
+        print('Section Table start from: 0x{:08x}'.format(self.section_table))
+        for i in range(self.section_num):
+            self.array[i].info(i)                
+        
 class IMAGE_FILE_HEADER(Structure):
     pass
-
 
 
 class IMAGE_OPTIONAL_HEADER32(Structure):
@@ -147,8 +176,15 @@ class IMAGE_DOS_HEADER(Structure):
     ]
 
 
+    def info(self):
+        Banner(self)
+        print('    e_magic:                     0x{:04x}'.format(self.e_magic))
+        print('    e_lfanew:                    0x{:08x}'.format(self.e_lfanew))
+        if not self.e_magic == 0x5a4d:
+            print('[!] Error: e_magic does not matched "MZ')
+            exit()
 
-    
+
 class IMAGE_FILE_HEADER(Structure):
     _fields_ = [
         ('Machine',			WORD),
@@ -161,13 +197,17 @@ class IMAGE_FILE_HEADER(Structure):
     ]
 
     
-    
 class IMAGE_DATA_DIRECTORY(Structure):
     _fields_ = [
         ('VirtualAddress',	DWORD),
         ('Size',		DWORD),
     ]
 
+    def info(self):
+        print('        VirtualAddress:            0x{:08x}'.format(self.DataDirectory[i].VirtualAddress))
+        print('        Size:                      0x{:08x}'.format(self.DataDirectory[i].Size))
+        
+        
 
 class IMAGE_OPTIONAL_HEADER32(Structure):
     _fields_ = [
@@ -207,6 +247,24 @@ class IMAGE_OPTIONAL_HEADER32(Structure):
     ]
 
 
+    
+
+    def info(self):
+        Banner(self)
+        print('    Magic:                       0x{:04x}'.format(self.Magic))
+        print('    SizeOfCode:                  0x{:08x}'.format(self.SizeOfCode))
+        print('    SizeOfInitializedData:       0x{:08x}'.format(self.SizeOfInitializedData))
+        print('    SizeOfUninitializedData:     0x{:08x}'.format(self.SizeOfUninitializedData))
+        print('    AddressOfEntryPoint:         0x{:08x}'.format(self.AddressOfEntryPoint))
+        print('    BaseOfCode:                  0x{:08x}'.format(self.BaseOfCode))
+        print('    BaseOfData:                  0x{:08x}'.format(self.BaseOfData))
+        print('    ImageBase:                   0x{:08x}'.format(self.ImageBase))    
+        print('    SectionAlignment:            0x{:08x}'.format(self.SectionAlignment))
+        print('    FileAlignment:               0x{:08x}'.format(self.FileAlignment))
+        print('    SizeOfImage:                 0x{:08x}'.format(self.SizeOfImage))
+        print('    NumberOfRvaAndSizes          0x{:08x}'.format(self.NumberOfRvaAndSizes))
+        
+
 
     
 class Misc(Union):
@@ -230,6 +288,17 @@ class IMAGE_SECTION_HEADER(Structure):
         ('Characteristics',		DWORD),
     ]
 
+
+    def info(self, i):
+        print('{:02d}: {}'.format(i+1, ''.join([chr(name) for name in self.Name])))
+        print('    VirtualSize:                 0x{:08x}'.format(self.Misc.VirtualSize))        
+        print('    VirtualAddress:              0x{:08x}'.format(self.VirtualAddress))
+        print('    RawDataSize:                 0x{:08x}'.format(self.SizeOfRawData))
+        print('    RawDataOffsets:              0x{:08x}'.format(self.PointerToRawData))
+        print('    Characteristics:             0x{:08x}'.format(self.Characteristics))
+        for i in range(len(iCharacteristics)):
+            if(self.Characteristics & iCharacteristics[i]):
+                print('        {}'.format(pcszCharacteristics[i]))
     
 class IMAGE_NT_HEADERS32(Structure):
     _fields_ = [
@@ -238,7 +307,16 @@ class IMAGE_NT_HEADERS32(Structure):
         ('OptionalHeader',	IMAGE_OPTIONAL_HEADER32)
     ]
 
-    
+    def info(self):
+        Banner(self)
+        bsig = struct.pack('<I', self.Signature)
+        signature = ''.join(chr(c) for c in bsig)
+        print('    Signature:                   0x{:08x} (ASCII:{})'.format(self.Signature, signature))
+        if not (self.Signature == 0x4550):
+            print('[!] Error: This File is Not PE.')
+            exit()
+                
+            
 class _U(Union):
     _fields_ = [
         ('Characteristics',	DWORD),
