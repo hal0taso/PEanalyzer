@@ -1,6 +1,7 @@
 import sys
 from winnt_def import *
 
+# バイナリデータから文字列抽出を行う
 def search_str(data):
     print('{:=^60}'.format('START STRING SEARCH'))
     lstr = []
@@ -13,6 +14,8 @@ def search_str(data):
         #     code = False
         # else:
         #     text = ''
+
+        # ascii 文字の範囲内にあるかどうかの確認 
         if 0x20 <= b <= 0x7e: #and (not code):
             text += chr(b)
         elif len(text) > 1:
@@ -27,6 +30,7 @@ def search_str(data):
     print('{:=^60}'.format('END'))
 
 
+# 文字列の左側をヌルバイトでパディング
 def lfnull(s):
     return '{:\0<8}'.format(s)
     
@@ -67,14 +71,16 @@ def main():
     
 
     for i in range(ish.section_num):
-        print([chr(name) for name in ish.array[i].Name])
-        name = ''.join([chr(name) for name in ish.array[i].Name])
-        print('Name: {}, Length: {}'.format(name, len(name)))
-                       
+        
+        # セクション名の中にヌル文字が入ってるのを確認。
+        # print([chr(name) for name in ish.array[i].Name])
+        # name = ''.join([chr(name) for name in ish.array[i].Name])
+        # print('Name: {}, Length: {}'.format(name, len(name)))
+
+        # .textセクションから文字列を抽出
         if (''.join([chr(name) for name in ish.array[i].Name]) == lfnull('.text')):
             search_str(r[ish.array[i].PointerToRawData:ish.array[i].PointerToRawData + ish.array[i].SizeOfRawData])
-        elif (''.join([chr(name) for name in ish.array[i].Name]) == lfnull('.rodata')):
-            search_str(r[ish.array[i].PointerToRawData:ish.array[i].PointerToRawData + ish.array[i].SizeOfRawData])
+
 
 
     fd.close()
