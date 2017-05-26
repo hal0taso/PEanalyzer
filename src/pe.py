@@ -1,5 +1,6 @@
 import sys
 from winnt_def import *
+import argparse
 
 # バイナリデータから文字列抽出を行う
 def search_str(data):
@@ -36,8 +37,24 @@ def lfnull(s):
     
 
 def main():
+
+    # set options using argparse library
+    parser = argparse.ArgumentParser(description="extract string literals from PE excutable format.")
+
+    parser.add_argument("file",
+                        help="file to analyze")
+    parser.add_argument("-v", "--verbose",
+                        help="increase output verbosisy.\nif you use this option, this program print information of each header",
+                        action="store_true")
+    parser.add_argument("-s", "--section",
+                        help="if you want to show raw data of section, you can use this option with section name")
+
+    args = parser.parse_args()
+
+    
     # read pefile
-    fd = open(sys.argv[1], 'rb')
+    if args.file:
+        fd = open(args.file, 'rb')
 
     if len(sys.argv) == 3 and sys.argv[2] == 'p':
         printflag = True
@@ -47,7 +64,7 @@ def main():
     # まずはIMAGE_DOS_HEADERから
     idh = IMAGE_DOS_HEADER()
     sinit(idh, r)
-    idh.info()
+    
     
     # PEヘッダの位置を取得
     pe_header = idh.e_lfanew
@@ -55,18 +72,26 @@ def main():
     # IMAGE_NT_HEADERS32を取得
     inh = IMAGE_NT_HEADERS32()
     io.BytesIO(r[pe_header:pe_header + sizeof(IMAGE_NT_HEADERS32)]).readinto(inh)
-    inh.info()
+    
     
     ifh = inh.FileHeader
     ioh = inh.OptionalHeader
 
-    ioh.info()
+
     
     section_table = pe_header + sizeof(IMAGE_NT_HEADERS32)
     
     ish = aIMAGE_SECTION_HEADER(ifh.NumberOfSections, r, section_table)
 
-    ish.info()
+
+    if args.verbose:
+        idh.info()
+        inh.info()
+        ioh.info()
+        ish.info()
+
+        
+
 
     
 
@@ -81,9 +106,7 @@ def main():
         if (''.join([chr(name) for name in ish.array[i].Name]) == lfnull('.text')):
             search_str(r[ish.array[i].PointerToRawData:ish.array[i].PointerToRawData + ish.array[i].SizeOfRawData])
 
-
-
-    fd.close()
+    fd.close()    
 
 # for 目grep
 def print_raw_data(data, ptr, size):
