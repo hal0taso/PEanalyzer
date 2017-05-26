@@ -24,9 +24,9 @@ def search_str(data):
         #     text = ''
 
         # ascii 文字の範囲内にあるかどうかの確認 
-        if 0x20 <= b <= 0x7e: #and (not code):
+        if 0x20 <= b <= 0x7e or b == 0x09: #and (not code):
             text += chr(b)
-        elif len(text) > 1:
+        elif len(text) > 4:
             lstr.append(text)
             text = ''
         else:
@@ -38,7 +38,7 @@ def search_str(data):
     print('{:=^60}'.format('END'))
 
 
-def search_str_each_section(r, ish, section_name):
+def search_str_each_section(r, ish, section_name, raw=False):
 
     '''
     search_str_each_section(ish):
@@ -56,8 +56,13 @@ def search_str_each_section(r, ish, section_name):
 
         # .textセクションから文字列を抽出
         if (''.join([chr(name) for name in ish.array[i].Name]) == lfnull(section_name)):
-            search_str(r[ish.array[i].PointerToRawData:ish.array[i].PointerToRawData + ish.array[i].SizeOfRawData])
-    
+            if raw:
+                print_raw_data(r, ish.array[i].PointerToRawData, ish.array[i].SizeOfRawData)
+            else:
+                search_str(r[ish.array[i].PointerToRawData:ish.array[i].PointerToRawData + ish.array[i].SizeOfRawData])
+            
+            
+
 
 
 # 文字列の左側をヌルバイトでパディング
@@ -76,8 +81,9 @@ def main():
                         help="increase output verbosisy.\nif you use this option, this program print information of each header",
                         action="store_true")
     parser.add_argument("-s", "--section",
-                        help="if you want to show string literals in specific section, you can use this option with section name")
-
+                        help="if you want to show string literals in specified section, you can use this option with section name")
+    parser.add_argument("-r", "--raw",
+                        help="show rawdata of specified section")
 
     args = parser.parse_args()
 
@@ -123,6 +129,10 @@ def main():
         
     
     search_str_each_section(r, ish, section_name)
+
+    if args.raw:
+        section_name = args.raw
+        search_str_each_section(r, ish, section_name, raw=True)
         
     fd.close()
 
