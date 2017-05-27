@@ -5,9 +5,9 @@ for Seccamp2017 and Sel-Educating
 
 # usage
 ```
- ./src/pe.py -h
+$ ./src/pe.py -h
 usage: pe.py [-h] [-v] [-s SECTION [SECTION ...] | -r SECTION [SECTION ...] |
-             -A]
+             -A] [-l LENGTH]
              FILE
 
 Analysinc PE excutable format.
@@ -24,6 +24,9 @@ optional arguments:
   -r SECTION [SECTION ...], --raw SECTION [SECTION ...]
                         show rawdata of specified section
   -A, --all             search string literals of all section
+  -l LENGTH, --length LENGTH
+                        change string_min length
+
   ``` 
   
 # example
