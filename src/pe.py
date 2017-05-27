@@ -18,7 +18,7 @@ def is_str(data):
     code = False
     for b in data:
         # ascii 文字の範囲内にあるかどうかの確認 
-        if 0x20 <= b <= 0x7e or b == 0x09: #and (not code):
+        if 0x20 <= b <= 0x7e: #and (not code):
             text += chr(b)
         elif len(text) >= 4:
             lstr.append(text)
@@ -31,18 +31,22 @@ def is_str(data):
             print(s)
     # print('{:=^60}'.format('END'))
 
-def is_initialized_data_section(r, ish, sec_num, ptr):
+def is_initialized_data_section(a_ish, sec_num):
 
     '''
     check each IMAGE_SECTION_HEADER.
     '''
 
     init_data_sec = []
-    
+
+    # 各IMAGE_SECTION_HEADERのCharacteristicsのフラグをチェック
+    # INITIALIZED_DATAのフラグが立っているセクションを見る
     for i in range(sec_num):
-        
-        pass
-    pass
+        isInitialized = a_ish.array[i].Characteristics & IMAGE_SCN_CNT_INITIALIZED_DATA
+        isRead = a_ish.array[i].Characteristics & IMAGE_SCN_MEM_READ
+        if isRead or isInitialized:
+            init_data_sec.append(a_ish.array[i].getName())
+    return init_data_sec
     
 
 
@@ -55,7 +59,7 @@ def print_raw_data(data, ptr, size):
 
 
 
-def search_str_each_section(r, ish, section_name=[], raw=False):
+def search_str_each_section(r, a_ish, section_name=[], raw=False):
 
     '''
     search_str_each_section(ish):
@@ -65,7 +69,7 @@ def search_str_each_section(r, ish, section_name=[], raw=False):
     if section name is empty, search all section
     '''
     
-    for i in range(ish.section_num):
+    for i in range(a_ish.section_num):
         
         # セクション名の中にヌル文字が入ってるのを確認。
         # print([chr(name) for name in ish.array[i].Name])
@@ -74,19 +78,19 @@ def search_str_each_section(r, ish, section_name=[], raw=False):
         
         # .textセクションから文字列を抽出
         if section_name:
-            if ish.array[i].getName() in section_name:
+            if a_ish.array[i].getName() in section_name:
                 #            print(''.join([chr(name) for name in ish.array[i].Name]))
                 if raw:
                     print_raw_data(r,
                                    ish.array[i].PointerToRawData,
                                    ish.array[i].SizeOfRawData)
                 else:
-                    is_str(r[ish.array[i].PointerToRawData:ish.array[i].PointerToRawData + ish.array[i].SizeOfRawData])
+                    is_str(r[a_ish.array[i].PointerToRawData:a_ish.array[i].PointerToRawData + a_ish.array[i].SizeOfRawData])
         else:
             if raw:
-                print_raw_data(r, ish.array[i].PointerToRawData, ish.array[i].SizeOfRawData)
+                print_raw_data(r, a_ish.array[i].PointerToRawData, a_ish.array[i].SizeOfRawData)
             else:
-                is_str(r[ish.array[i].PointerToRawData:ish.array[i].PointerToRawData + ish.array[i].SizeOfRawData])
+                is_str(r[a_ish.array[i].PointerToRawData:a_ish.array[i].PointerToRawData + a_ish.array[i].SizeOfRawData])
 
 
 
@@ -102,22 +106,28 @@ def main():
     # set options using argparse library
     parser = argparse.ArgumentParser(description="Analysinc PE excutable format.")
 
+    # 文字列抽出に関するオプションは競合するのでグループ化する
+    search_group = parser.add_mutually_exclusive_group()
+    
     parser.add_argument("FILE",
                         help="FILE to analyze")
     
     parser.add_argument("-v", "--verbose",
-                        help="increase output verbosisy.\nif you use this option, this program print information of each header",
+                        help="show information of each header or section.\n\
+                        does not extract string literals.",
                         action="store_true")
-    
-    parser.add_argument("-s", "--section", nargs='+',
+
+    # グルーピングした奴ら
+    search_group.add_argument("-s", "--section", nargs='+',
                         help="show string literals in specified section")
     
-    parser.add_argument("-r", "--raw", nargs='+', metavar='SECTION',
+    search_group.add_argument("-r", "--raw", nargs='+', metavar='SECTION',
                         help="show rawdata of specified section")
-    parser.add_argument("-A", "--all",
+    search_group.add_argument("-A", "--all",
                         help="search string literals of all section",
                         action="store_true")
 
+    # オプションの読み込み
     args = parser.parse_args()
 
     
@@ -140,24 +150,25 @@ def main():
     ifh = inh.FileHeader
     ioh = inh.OptionalHeader
     section_table = ptr_pe_header + sizeof(IMAGE_NT_HEADERS32)
-    ish = aIMAGE_SECTION_HEADER(ifh.NumberOfSections, r, section_table)
+    a_ish = aIMAGE_SECTION_HEADER(ifh.NumberOfSections, r, section_table)
 
 
     if args.verbose:
         idh.info()
         inh.info()
         ioh.info()
-        ish.info()
+        a_ish.info()
 
 
     if args.section:
-        search_str_each_section(r, ish, args.section)
-
-    if args.raw:
-        search_str_each_section(r, ish, args.raw, raw=True)
-
-    if args.all:
-        search_str_each_section(r, ish)
+        search_str_each_section(r, a_ish, args.section)
+    elif args.raw:
+        search_str_each_section(r, a_ish, args.raw, raw=True)
+    elif args.all:
+        search_str_each_section(r, a_ish)
+    elif not args.verbose:
+        search_str_each_section(r, a_ish,
+            is_initialized_data_section(a_ish, ifh.NumberOfSections))
         
     fd.close()
 
