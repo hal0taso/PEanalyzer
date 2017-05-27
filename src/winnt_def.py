@@ -6,6 +6,8 @@ def Banner(s):
     print('{:=^60}'.format(s.__class__.__name__))
 
 
+
+    
 # Map the Microsoft types to ctypes for clarity
 BYTE    = c_ubyte
 WORD    = c_uint16
@@ -113,6 +115,20 @@ pcszCharacteristics = [
     'MEM_WRITE',
 ]
 
+
+class wStructure(Structure):
+
+    def banner(self):
+        print('{:=^60}'.format(self.__class__.__name__))
+
+    def sinit(self, data, ptr=0):
+        io.BytesIO(data[ptr:ptr+sizeof(self)]).readinto(self)
+
+    def chr2str(self, chr_array):
+        return ''.join([chr(c) for c in chr_array]).strip('\0')
+
+
+
 def sinit(s, data, ptr=0):
     io.BytesIO(data[ptr:ptr+sizeof(s)]).readinto(s)
 
@@ -152,7 +168,7 @@ class IMAGE_DATA_DIRECTORY(Structure):
     pass
 
 
-class IMAGE_DOS_HEADER(Structure):
+class IMAGE_DOS_HEADER(wStructure):
     _fields_ = [
         ('e_magic',	WORD),
         ('e_cblp',	WORD),
@@ -175,9 +191,11 @@ class IMAGE_DOS_HEADER(Structure):
         ('e_lfanew',	LONG),
     ]
 
+    def __init__(self, r):
+        self.sinit(r)
 
     def info(self):
-        Banner(self)
+        self.banner()
         print('    e_magic:                     0x{:04x}'.format(self.e_magic))
         print('    e_lfanew:                    0x{:08x}'.format(self.e_lfanew))
         if not self.e_magic == 0x5a4d:
@@ -305,8 +323,7 @@ class IMAGE_SECTION_HEADER(Structure):
         return ''.join([chr(name) for name in self.Name])
 
     def getNameb(self):
-        return ''.join([chr(name) for name in self.Name]).split('\0')[0]
-
+        return ''.join([chr(name) for name in self.Name]).strip('\0')
     
 class IMAGE_NT_HEADERS32(Structure):
     _fields_ = [

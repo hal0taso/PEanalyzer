@@ -116,8 +116,8 @@ def main():
     r = fd.read()
 
     # まずはIMAGE_DOS_HEADERから
-    idh = IMAGE_DOS_HEADER()
-    sinit(idh, r)
+    idh = IMAGE_DOS_HEADER(r)
+    # sinit(idh, r)
     
     
     # PEヘッダの位置を取得
