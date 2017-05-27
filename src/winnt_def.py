@@ -2,10 +2,7 @@ from ctypes import *
 import io
 import struct
 
-def Banner(s):
-    print('{:=^60}'.format(s.__class__.__name__))
-
-
+    
 # Map the Microsoft types to ctypes for clarity
 BYTE    = c_ubyte
 WORD    = c_uint16
@@ -113,25 +110,42 @@ pcszCharacteristics = [
     'MEM_WRITE',
 ]
 
-def sinit(s, data, ptr=0):
-    io.BytesIO(data[ptr:ptr+sizeof(s)]).readinto(s)
+
+class Structure(Structure):
+
+    def banner(self):
+        print('{:=^60}'.format(self.__class__.__name__))
+
+    def sinit(self, data, ptr=0):
+        io.BytesIO(data[ptr:ptr+sizeof(self)]).readinto(self)
+
+    def chr2str(self, chr_array):
+        return ''.join([chr(c) for c in chr_array]).strip('\0')
+
+    def __init__(self, r, ptr=0):
+        self.sinit(r, ptr)
+
+
+# def sinit(s, data, ptr=0):
+#     io.BytesIO(data[ptr:ptr+sizeof(s)]).readinto(s)
 
 class aIMAGE_SECTION_HEADER:
 
     '''
     aIMAGE_SECTION_HEADER:
-    Return list of IMAGE_SECTION_HEADER.
+    This Class is wrapper of array of IMAGE_SECTION_HEADER.
     
     e.g.
     array_ish = aIMAGE_SECTION_HEADER(image_file_header.NumberOfSections, data, section_table_ptr)
     '''
     
-    def __init__(self, section_num, data, ptr):
+    def __init__(self, section_num, r, ptr):
         self.array = (IMAGE_SECTION_HEADER * section_num)()
         self.section_num = section_num
         self.section_table = ptr
         for i in range(section_num):
-            sinit(self.array[i], data, ptr)
+            # コンストラクタを呼ぶときに初期化がうまくいかないので手動でしないといけない(´･_･`)
+            self.array[i].sinit(r, ptr)
             ptr += sizeof(IMAGE_SECTION_HEADER)
         
     def info(self):
@@ -175,9 +189,8 @@ class IMAGE_DOS_HEADER(Structure):
         ('e_lfanew',	LONG),
     ]
 
-
     def info(self):
-        Banner(self)
+        self.banner()
         print('    e_magic:                     0x{:04x}'.format(self.e_magic))
         print('    e_lfanew:                    0x{:08x}'.format(self.e_lfanew))
         if not self.e_magic == 0x5a4d:
@@ -246,11 +259,8 @@ class IMAGE_OPTIONAL_HEADER32(Structure):
         ('DataDirectory',		IMAGE_DATA_DIRECTORY * IMAGE_NUMBEROF_DIRECTORY_ENTRIES),
     ]
 
-
-    
-
     def info(self):
-        Banner(self)
+        self.banner()
         print('    Magic:                       0x{:04x}'.format(self.Magic))
         print('    SizeOfCode:                  0x{:08x}'.format(self.SizeOfCode))
         print('    SizeOfInitializedData:       0x{:08x}'.format(self.SizeOfInitializedData))
@@ -288,9 +298,8 @@ class IMAGE_SECTION_HEADER(Structure):
         ('Characteristics',		DWORD),
     ]
 
-
     def info(self, i):
-        print('{:02d}: {}'.format(i+1, ''.join([chr(name) for name in self.Name])))
+        print('{:02d}: {}'.format(i+1, self.chr2str(self.Name))) # join([chr(name) for name in self.Name])))
         print('    VirtualSize:                 0x{:08x}'.format(self.Misc.VirtualSize))        
         print('    VirtualAddress:              0x{:08x}'.format(self.VirtualAddress))
         print('    RawDataSize:                 0x{:08x}'.format(self.SizeOfRawData))
@@ -307,14 +316,20 @@ class IMAGE_NT_HEADERS32(Structure):
         ('OptionalHeader',	IMAGE_OPTIONAL_HEADER32)
     ]
 
-    def info(self):
-        Banner(self)
-        bsig = struct.pack('<I', self.Signature)
-        signature = ''.join(chr(c) for c in bsig)
-        print('    Signature:                   0x{:08x} (ASCII:{})'.format(self.Signature, signature))
+    def __init__(self, r, ptr=0):
+        # __init__の呼ばれるタイミングを明示的にしてあげないといけないみたい
+        super().__init__(r, ptr)
+        print(self.Signature)
         if not (self.Signature == 0x4550):
             print('[!] Error: This File is Not PE.')
             exit()
+
+            
+    def info(self):
+        self.banner()
+        bsig = struct.pack('<I', self.Signature)
+        signature = self.chr2str(bsig)
+        print('    Signature:                   0x{:08x} (ASCII:{})'.format(self.Signature, signature))
                 
             
 class _U(Union):
