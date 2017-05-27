@@ -28,23 +28,26 @@ optional arguments:
   
 # example
 
-1. default
+## 1. default
 
-```
-$ ./src/pe.py ./testfile/ConsoleApplication1.exe
-```
 search all Section Contain Initialized data or Memory can read and print string literals
 
-
-2. specified section
-
 ```
 $ ./src/pe.py ./testfile/ConsoleApplication1.exe
 ```
+
+## 2. specified section
+
 search specified Section and print string literals.  
 section name is what you can see using -v option.
 
-3. show header and section infomation
+```
+$ ./src/pe.py ./testfile/ConsoleApplication1.exe
+```
+
+## 3. show header and section infomation
+
+you can see pe header information
 
 ```
 $ ./src/pe.py ./testfile/ConsoleApplication1.exe -v
@@ -95,5 +98,3 @@ Section Table start from: 0x00000178
         MEM_DISCARDABLE
         MEM_READ
 ```
-
-you can see pe header information
