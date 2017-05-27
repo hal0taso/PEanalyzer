@@ -2,11 +2,6 @@ from ctypes import *
 import io
 import struct
 
-def Banner(s):
-    print('{:=^60}'.format(s.__class__.__name__))
-
-
-
     
 # Map the Microsoft types to ctypes for clarity
 BYTE    = c_ubyte
@@ -264,9 +259,6 @@ class IMAGE_OPTIONAL_HEADER32(Structure):
         ('DataDirectory',		IMAGE_DATA_DIRECTORY * IMAGE_NUMBEROF_DIRECTORY_ENTRIES),
     ]
 
-
-    
-
     def info(self):
         self.banner()
         print('    Magic:                       0x{:04x}'.format(self.Magic))
@@ -325,6 +317,7 @@ class IMAGE_NT_HEADERS32(Structure):
     ]
 
     def __init__(self, r, ptr=0):
+        # __init__の呼ばれるタイミングを明示的にしてあげないといけないみたい
         super().__init__(r, ptr)
         print(self.Signature)
         if not (self.Signature == 0x4550):

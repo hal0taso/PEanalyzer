@@ -17,13 +17,6 @@ def is_str(data):
     text = ''
     code = False
     for b in data:
-        # if len(text) == 0 and b == 0x55: # PUSH EBP = 0x55
-        #     code = True
-        # elif code and (b in [0xc2, 0xc3, 0x90, 0x00]):
-        #     code = False
-        # else:
-        #     text = ''
-
         # ascii 文字の範囲内にあるかどうかの確認 
         if 0x20 <= b <= 0x7e or b == 0x09: #and (not code):
             text += chr(b)
@@ -53,6 +46,15 @@ def is_initialized_data_section(r, ish, sec_num, ptr):
     
 
 
+def print_raw_data(data, ptr, size):
+    '''
+    目grepをしろ！！！
+    '''
+    
+    print(data[ptr:ptr + size])
+
+
+
 def search_str_each_section(r, ish, section_name=[], raw=False):
 
     '''
@@ -62,8 +64,6 @@ def search_str_each_section(r, ish, section_name=[], raw=False):
     ish is IMAGE_SECTION_HEADER.
     if section name is empty, search all section
     '''
-
-#    print(section_name)
     
     for i in range(ish.section_num):
         
@@ -77,7 +77,9 @@ def search_str_each_section(r, ish, section_name=[], raw=False):
             if ish.array[i].getName() in section_name:
                 #            print(''.join([chr(name) for name in ish.array[i].Name]))
                 if raw:
-                    print_raw_data(r, ish.array[i].PointerToRawData, ish.array[i].SizeOfRawData)
+                    print_raw_data(r,
+                                   ish.array[i].PointerToRawData,
+                                   ish.array[i].SizeOfRawData)
                 else:
                     is_str(r[ish.array[i].PointerToRawData:ish.array[i].PointerToRawData + ish.array[i].SizeOfRawData])
         else:
@@ -158,11 +160,6 @@ def main():
         search_str_each_section(r, ish)
         
     fd.close()
-
-    
-# for 目grep
-def print_raw_data(data, ptr, size):
-    print(data[ptr:ptr + size])
 
     
 if __name__ == '__main__':
