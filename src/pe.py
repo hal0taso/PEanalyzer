@@ -18,7 +18,7 @@ def is_str(data):
     code = False
     for b in data:
         # ascii 文字の範囲内にあるかどうかの確認 
-        if 0x20 <= b <= 0x7e or b == 0x09: #and (not code):
+        if 0x20 <= b <= 0x7e: #and (not code):
             text += chr(b)
         elif len(text) >= 4:
             lstr.append(text)
@@ -42,7 +42,9 @@ def is_initialized_data_section(a_ish, sec_num):
     # 各IMAGE_SECTION_HEADERのCharacteristicsのフラグをチェック
     # INITIALIZED_DATAのフラグが立っているセクションを見る
     for i in range(sec_num):
-        if(a_ish.array[i].Characteristics & IMAGE_SCN_CNT_INITIALIZED_DATA):
+        isInitialized = a_ish.array[i].Characteristics & IMAGE_SCN_CNT_INITIALIZED_DATA
+        isRead = a_ish.array[i].Characteristics & IMAGE_SCN_MEM_READ
+        if isRead or isInitialized:
             init_data_sec.append(a_ish.array[i].getName())
     return init_data_sec
     
@@ -163,7 +165,7 @@ def main():
         search_str_each_section(r, a_ish, args.raw, raw=True)
     elif args.all:
         search_str_each_section(r, a_ish)
-    else:
+    elif not args.verbose:
         search_str_each_section(r, a_ish,
             is_initialized_data_section(a_ish, ifh.NumberOfSections))
         
