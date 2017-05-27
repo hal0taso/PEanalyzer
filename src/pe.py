@@ -3,8 +3,10 @@ import sys
 from winnt_def import *
 import argparse
 
+STRING_MIN = 4
+
 # バイナリデータから文字列抽出を行う
-def is_str(data):
+def is_str(data, str_min=STRING_MIN):
 
     '''
     extract string literal from binary data.
@@ -20,7 +22,7 @@ def is_str(data):
         # ascii 文字の範囲内にあるかどうかの確認 
         if 0x20 <= b <= 0x7e: #and (not code):
             text += chr(b)
-        elif len(text) >= 4:
+        elif len(text) >= str_min:
             lstr.append(text)
             text = ''
         else:
@@ -59,7 +61,7 @@ def print_raw_data(data, ptr, size):
 
 
 
-def search_str_each_section(r, a_ish, section_name=[], raw=False):
+def search_str_each_section(r, a_ish, section_name=[],raw=False, str_min=STRING_MIN):
 
     '''
     search_str_each_section(ish):
@@ -85,12 +87,22 @@ def search_str_each_section(r, a_ish, section_name=[], raw=False):
                                    ish.array[i].PointerToRawData,
                                    ish.array[i].SizeOfRawData)
                 else:
-                    is_str(r[a_ish.array[i].PointerToRawData:a_ish.array[i].PointerToRawData + a_ish.array[i].SizeOfRawData])
+                    is_str(
+                        r[a_ish.array[i].PointerToRawData:a_ish.array[i].PointerToRawData
+                          + a_ish.array[i].SizeOfRawData],
+                        str_min)
         else:
             if raw:
-                print_raw_data(r, a_ish.array[i].PointerToRawData, a_ish.array[i].SizeOfRawData)
+                print_raw_data(r,
+                               a_ish.array[i].PointerToRawData,
+                               a_ish.array[i].SizeOfRawData
+                )
             else:
-                is_str(r[a_ish.array[i].PointerToRawData:a_ish.array[i].PointerToRawData + a_ish.array[i].SizeOfRawData])
+                is_str(
+                    r[a_ish.array[i].PointerToRawData:a_ish.array[i].PointerToRawData
+                      + a_ish.array[i].SizeOfRawData],
+                    str_min
+                )
 
 
 
@@ -126,6 +138,8 @@ def main():
     search_group.add_argument("-A", "--all",
                         help="search string literals of all section",
                         action="store_true")
+    parser.add_argument("-l", "--length",
+                        help="change string_min length", type=int)
 
     # オプションの読み込み
     args = parser.parse_args()
@@ -160,16 +174,20 @@ def main():
         a_ish.info()
 
 
+    if args.length:
+        STRING_MIN = args.length
+        
     if args.section:
-        search_str_each_section(r, a_ish, args.section)
+        search_str_each_section(r, a_ish, args.section, str_min=STRING_MIN)
     elif args.raw:
-        search_str_each_section(r, a_ish, args.raw, raw=True)
+        search_str_each_section(r, a_ish, args.raw, raw=True, str_min=STRING_MIN)
     elif args.all:
-        search_str_each_section(r, a_ish)
+        search_str_each_section(r, a_ish, str_min=STRING_MIN)
     elif not args.verbose:
         search_str_each_section(r, a_ish,
-            is_initialized_data_section(a_ish, ifh.NumberOfSections))
-        
+                                is_initialized_data_section(a_ish, ifh.NumberOfSections),
+                                str_min=STRING_MIN)
+
     fd.close()
 
     
