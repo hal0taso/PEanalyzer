@@ -113,7 +113,8 @@ def main():
                         help="FILE to analyze")
     
     parser.add_argument("-v", "--verbose",
-                        help="increase output verbosisy.\nif you use this option, this program print information of each header",
+                        help="show information of each header or section.\n\
+                        does not extract string literals.",
                         action="store_true")
 
     # グルーピングした奴ら
