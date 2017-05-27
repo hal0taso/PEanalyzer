@@ -298,8 +298,11 @@ class IMAGE_SECTION_HEADER(Structure):
         ('Characteristics',		DWORD),
     ]
 
+    def getName(self):
+        return self.chr2str(self.Name)
+
     def info(self, i):
-        print('{:02d}: {}'.format(i+1, self.chr2str(self.Name))) # join([chr(name) for name in self.Name])))
+        print('{:02d}: {}'.format(i+1, self.getName())) # join([chr(name) for name in self.Name])))
         print('    VirtualSize:                 0x{:08x}'.format(self.Misc.VirtualSize))        
         print('    VirtualAddress:              0x{:08x}'.format(self.VirtualAddress))
         print('    RawDataSize:                 0x{:08x}'.format(self.SizeOfRawData))
@@ -319,7 +322,6 @@ class IMAGE_NT_HEADERS32(Structure):
     def __init__(self, r, ptr=0):
         # __init__の呼ばれるタイミングを明示的にしてあげないといけないみたい
         super().__init__(r, ptr)
-        print(self.Signature)
         if not (self.Signature == 0x4550):
             print('[!] Error: This File is Not PE.')
             exit()
