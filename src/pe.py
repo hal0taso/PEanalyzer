@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import sys
 from winnt_def import *
 import argparse
@@ -11,7 +12,7 @@ def search_str(data):
     if it is in ASCII code and length is larger than 1, it is considered as string literal.
     '''
     
-    print('{:=^60}'.format('START STRING SEARCH'))
+    # print('{:=^60}'.format('START STRING SEARCH'))
     lstr = []
     text = ''
     code = False
@@ -26,7 +27,7 @@ def search_str(data):
         # ascii 文字の範囲内にあるかどうかの確認 
         if 0x20 <= b <= 0x7e or b == 0x09: #and (not code):
             text += chr(b)
-        elif len(text) > 4:
+        elif len(text) >= 4:
             lstr.append(text)
             text = ''
         else:
@@ -35,7 +36,21 @@ def search_str(data):
     else:
         for s in lstr:
             print(s)
-    print('{:=^60}'.format('END'))
+    # print('{:=^60}'.format('END'))
+
+def is_initialized_data_section(r, ish, sec_num, ptr):
+
+    '''
+    check each IMAGE_SECTION_HEADER.
+    '''
+
+    init_data_sec = []
+    
+    for i in range(sec_num):
+        
+        pass
+    pass
+    
 
 
 def search_str_each_section(r, ish, section_name, raw=False):
@@ -47,15 +62,21 @@ def search_str_each_section(r, ish, section_name, raw=False):
     ish is IMAGE_SECTION_HEADER.
     '''
 
+    for i in range(len(section_name)):
+        section_name[i] = lfnull(section_name[i])
+
+#    print(section_name)
+    
     for i in range(ish.section_num):
         
         # セクション名の中にヌル文字が入ってるのを確認。
         # print([chr(name) for name in ish.array[i].Name])
         # name = ''.join([chr(name) for name in ish.array[i].Name])
         # print('Name: {}, Length: {}'.format(name, len(name)))
-
+        
         # .textセクションから文字列を抽出
-        if (''.join([chr(name) for name in ish.array[i].Name]) == lfnull(section_name)):
+        if ''.join([chr(name) for name in ish.array[i].Name]) in section_name:
+#            print(''.join([chr(name) for name in ish.array[i].Name]))
             if raw:
                 print_raw_data(r, ish.array[i].PointerToRawData, ish.array[i].SizeOfRawData)
             else:
@@ -80,9 +101,9 @@ def main():
     parser.add_argument("-v", "--verbose",
                         help="increase output verbosisy.\nif you use this option, this program print information of each header",
                         action="store_true")
-    parser.add_argument("-s", "--section",
+    parser.add_argument("-s", "--section", nargs='+',
                         help="if you want to show string literals in specified section, you can use this option with section name")
-    parser.add_argument("-r", "--raw",
+    parser.add_argument("-r", "--raw", nargs='+',
                         help="show rawdata of specified section")
 
     args = parser.parse_args()
@@ -123,16 +144,12 @@ def main():
         ioh.info()
         ish.info()
 
-    section_name = ''
+
     if args.section:
-        section_name = args.section
-        
-    
-    search_str_each_section(r, ish, section_name)
+        search_str_each_section(r, ish, args.section)
 
     if args.raw:
-        section_name = args.raw
-        search_str_each_section(r, ish, section_name, raw=True)
+        search_str_each_section(r, ish, args.raw, raw=True)
         
     fd.close()
 
