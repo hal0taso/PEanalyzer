@@ -290,7 +290,7 @@ class IMAGE_SECTION_HEADER(Structure):
 
 
     def info(self, i):
-        print('{:02d}: {}'.format(i+1, ''.join([chr(name) for name in self.Name])))
+        print('{:02d}: {}'.format(i+1, self.getNameb())) # join([chr(name) for name in self.Name])))
         print('    VirtualSize:                 0x{:08x}'.format(self.Misc.VirtualSize))        
         print('    VirtualAddress:              0x{:08x}'.format(self.VirtualAddress))
         print('    RawDataSize:                 0x{:08x}'.format(self.SizeOfRawData))
@@ -299,6 +299,14 @@ class IMAGE_SECTION_HEADER(Structure):
         for i in range(len(iCharacteristics)):
             if(self.Characteristics & iCharacteristics[i]):
                 print('        {}'.format(pcszCharacteristics[i]))
+
+
+    def getName(self):
+        return ''.join([chr(name) for name in self.Name])
+
+    def getNameb(self):
+        return ''.join([chr(name) for name in self.Name]).split('\0')[0]
+
     
 class IMAGE_NT_HEADERS32(Structure):
     _fields_ = [

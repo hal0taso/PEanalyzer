@@ -75,7 +75,7 @@ def search_str_each_section(r, ish, section_name, raw=False):
         # print('Name: {}, Length: {}'.format(name, len(name)))
         
         # .textセクションから文字列を抽出
-        if ''.join([chr(name) for name in ish.array[i].Name]) in section_name:
+        if ish.array[i].getName() in section_name:
 #            print(''.join([chr(name) for name in ish.array[i].Name]))
             if raw:
                 print_raw_data(r, ish.array[i].PointerToRawData, ish.array[i].SizeOfRawData)
@@ -102,7 +102,7 @@ def main():
                         help="increase output verbosisy.\nif you use this option, this program print information of each header",
                         action="store_true")
     parser.add_argument("-s", "--section", nargs='+',
-                        help="if you want to show string literals in specified section, you can use this option with section name")
+                        help="if you want to show string literals in specified section, use this option with section name")
     parser.add_argument("-r", "--raw", nargs='+',
                         help="show rawdata of specified section")
 
