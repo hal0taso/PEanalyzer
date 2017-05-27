@@ -116,7 +116,7 @@ pcszCharacteristics = [
 ]
 
 
-class wStructure(Structure):
+class Structure(Structure):
 
     def banner(self):
         print('{:=^60}'.format(self.__class__.__name__))
@@ -127,27 +127,30 @@ class wStructure(Structure):
     def chr2str(self, chr_array):
         return ''.join([chr(c) for c in chr_array]).strip('\0')
 
+    def __init__(self, r, ptr=0):
+        self.sinit(r, ptr)
 
 
-def sinit(s, data, ptr=0):
-    io.BytesIO(data[ptr:ptr+sizeof(s)]).readinto(s)
+# def sinit(s, data, ptr=0):
+#     io.BytesIO(data[ptr:ptr+sizeof(s)]).readinto(s)
 
 class aIMAGE_SECTION_HEADER:
 
     '''
     aIMAGE_SECTION_HEADER:
-    Return list of IMAGE_SECTION_HEADER.
+    This Class is wrapper of array of IMAGE_SECTION_HEADER.
     
     e.g.
     array_ish = aIMAGE_SECTION_HEADER(image_file_header.NumberOfSections, data, section_table_ptr)
     '''
     
-    def __init__(self, section_num, data, ptr):
+    def __init__(self, section_num, r, ptr):
         self.array = (IMAGE_SECTION_HEADER * section_num)()
         self.section_num = section_num
         self.section_table = ptr
         for i in range(section_num):
-            sinit(self.array[i], data, ptr)
+            # コンストラクタを呼ぶときに初期化がうまくいかないので手動でしないといけない(´･_･`)
+            self.array[i].sinit(r, ptr)
             ptr += sizeof(IMAGE_SECTION_HEADER)
         
     def info(self):
@@ -168,7 +171,7 @@ class IMAGE_DATA_DIRECTORY(Structure):
     pass
 
 
-class IMAGE_DOS_HEADER(wStructure):
+class IMAGE_DOS_HEADER(Structure):
     _fields_ = [
         ('e_magic',	WORD),
         ('e_cblp',	WORD),
@@ -191,9 +194,6 @@ class IMAGE_DOS_HEADER(wStructure):
         ('e_lfanew',	LONG),
     ]
 
-    def __init__(self, r):
-        self.sinit(r)
-
     def info(self):
         self.banner()
         print('    e_magic:                     0x{:04x}'.format(self.e_magic))
@@ -203,7 +203,7 @@ class IMAGE_DOS_HEADER(wStructure):
             exit()
 
 
-class IMAGE_FILE_HEADER(wStructure):
+class IMAGE_FILE_HEADER(Structure):
     _fields_ = [
         ('Machine',			WORD),
         ('NumberOfSections',		WORD),
@@ -227,7 +227,7 @@ class IMAGE_DATA_DIRECTORY(Structure):
         
         
 
-class IMAGE_OPTIONAL_HEADER32(wStructure):
+class IMAGE_OPTIONAL_HEADER32(Structure):
     _fields_ = [
         # Standard fields.
         ('Magic',			WORD),
@@ -306,9 +306,8 @@ class IMAGE_SECTION_HEADER(Structure):
         ('Characteristics',		DWORD),
     ]
 
-
     def info(self, i):
-        print('{:02d}: {}'.format(i+1, self.getNameb())) # join([chr(name) for name in self.Name])))
+        print('{:02d}: {}'.format(i+1, self.chr2str(self.Name))) # join([chr(name) for name in self.Name])))
         print('    VirtualSize:                 0x{:08x}'.format(self.Misc.VirtualSize))        
         print('    VirtualAddress:              0x{:08x}'.format(self.VirtualAddress))
         print('    RawDataSize:                 0x{:08x}'.format(self.SizeOfRawData))
@@ -317,15 +316,8 @@ class IMAGE_SECTION_HEADER(Structure):
         for i in range(len(iCharacteristics)):
             if(self.Characteristics & iCharacteristics[i]):
                 print('        {}'.format(pcszCharacteristics[i]))
-
-
-    def getName(self):
-        return ''.join([chr(name) for name in self.Name])
-
-    def getNameb(self):
-        return ''.join([chr(name) for name in self.Name]).strip('\0')
     
-class IMAGE_NT_HEADERS32(wStructure):
+class IMAGE_NT_HEADERS32(Structure):
     _fields_ = [
         ('Signature',		DWORD),
         ('FileHeader',		IMAGE_FILE_HEADER),
@@ -333,7 +325,7 @@ class IMAGE_NT_HEADERS32(wStructure):
     ]
 
     def __init__(self, r, ptr=0):
-        self.sinit(r, ptr)
+        super().__init__(r, ptr)
         print(self.Signature)
         if not (self.Signature == 0x4550):
             print('[!] Error: This File is Not PE.')
@@ -343,7 +335,7 @@ class IMAGE_NT_HEADERS32(wStructure):
     def info(self):
         self.banner()
         bsig = struct.pack('<I', self.Signature)
-        signature = ''.join(chr(c) for c in bsig)
+        signature = self.chr2str(bsig)
         print('    Signature:                   0x{:08x} (ASCII:{})'.format(self.Signature, signature))
                 
             
