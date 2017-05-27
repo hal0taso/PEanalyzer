@@ -124,8 +124,8 @@ def main():
     ptr_pe_header = idh.e_lfanew
     
     # IMAGE_NT_HEADERS32を取得
-    inh = IMAGE_NT_HEADERS32()
-    io.BytesIO(r[ptr_pe_header:ptr_pe_header + sizeof(IMAGE_NT_HEADERS32)]).readinto(inh)
+    inh = IMAGE_NT_HEADERS32(r,ptr_pe_header)
+    # io.BytesIO(r[ptr_pe_header:ptr_pe_header + sizeof(IMAGE_NT_HEADERS32)]).readinto(inh)
     
     
     ifh = inh.FileHeader

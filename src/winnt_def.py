@@ -203,7 +203,7 @@ class IMAGE_DOS_HEADER(wStructure):
             exit()
 
 
-class IMAGE_FILE_HEADER(Structure):
+class IMAGE_FILE_HEADER(wStructure):
     _fields_ = [
         ('Machine',			WORD),
         ('NumberOfSections',		WORD),
@@ -227,7 +227,7 @@ class IMAGE_DATA_DIRECTORY(Structure):
         
         
 
-class IMAGE_OPTIONAL_HEADER32(Structure):
+class IMAGE_OPTIONAL_HEADER32(wStructure):
     _fields_ = [
         # Standard fields.
         ('Magic',			WORD),
@@ -268,7 +268,7 @@ class IMAGE_OPTIONAL_HEADER32(Structure):
     
 
     def info(self):
-        Banner(self)
+        self.banner()
         print('    Magic:                       0x{:04x}'.format(self.Magic))
         print('    SizeOfCode:                  0x{:08x}'.format(self.SizeOfCode))
         print('    SizeOfInitializedData:       0x{:08x}'.format(self.SizeOfInitializedData))
@@ -325,21 +325,26 @@ class IMAGE_SECTION_HEADER(Structure):
     def getNameb(self):
         return ''.join([chr(name) for name in self.Name]).strip('\0')
     
-class IMAGE_NT_HEADERS32(Structure):
+class IMAGE_NT_HEADERS32(wStructure):
     _fields_ = [
         ('Signature',		DWORD),
         ('FileHeader',		IMAGE_FILE_HEADER),
         ('OptionalHeader',	IMAGE_OPTIONAL_HEADER32)
     ]
 
-    def info(self):
-        Banner(self)
-        bsig = struct.pack('<I', self.Signature)
-        signature = ''.join(chr(c) for c in bsig)
-        print('    Signature:                   0x{:08x} (ASCII:{})'.format(self.Signature, signature))
+    def __init__(self, r, ptr=0):
+        self.sinit(r, ptr)
+        print(self.Signature)
         if not (self.Signature == 0x4550):
             print('[!] Error: This File is Not PE.')
             exit()
+
+            
+    def info(self):
+        self.banner()
+        bsig = struct.pack('<I', self.Signature)
+        signature = ''.join(chr(c) for c in bsig)
+        print('    Signature:                   0x{:08x} (ASCII:{})'.format(self.Signature, signature))
                 
             
 class _U(Union):
