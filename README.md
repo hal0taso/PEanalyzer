@@ -1,7 +1,7 @@
 # PEanalyzer
 analyze PE header and section.
 
-for Seccamp2017 and Sel-Educating
+for Seccamp2017 and Self-Educating
 
 # usage
 ```
