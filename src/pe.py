@@ -107,7 +107,7 @@ def search_str_each_section(r, a_ish, section_name=[],raw=False, str_min=STRING_
 def main():
 
     # set options using argparse library
-    parser = argparse.ArgumentParser(description="Analysinc PE excutable format.")
+    parser = argparse.ArgumentParser(description="Analyse PE excutable format and Extract string literals")
 
     # 文字列抽出に関するオプションは競合するのでグループ化する
     search_group = parser.add_mutually_exclusive_group()

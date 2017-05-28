@@ -4,13 +4,14 @@ analyze PE header and section.
 for Seccamp2017 and Self-Educating
 
 # usage
+
 ```
 $ ./src/pe.py -h
-usage: pe.py [-h] [-v] [-s SECTION [SECTION ...] | -r SECTION [SECTION ...] |
-             -A] [-l LENGTH]
+usage: pe.py [-h] [-v] [-l STRINGS_MIN] [-s SECTION [SECTION ...] | -r SECTION
+             [SECTION ...] | -A]
              FILE
 
-Analysinc PE excutable format.
+Analyse PE excutable format and Extract string literals
 
 positional arguments:
   FILE                  FILE to analyze
@@ -19,15 +20,15 @@ optional arguments:
   -h, --help            show this help message and exit
   -v, --verbose         show information of each header or section. does not
                         extract string literals.
+  -l STRINGS_MIN, --length STRINGS_MIN
+                        change string_min length
   -s SECTION [SECTION ...], --section SECTION [SECTION ...]
                         show string literals in specified section
   -r SECTION [SECTION ...], --raw SECTION [SECTION ...]
                         show rawdata of specified section
   -A, --all             search string literals of all section
-  -l LENGTH, --length LENGTH
-                        change string_min length
 
-  ``` 
+``` 
   
 # example
 
