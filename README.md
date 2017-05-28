@@ -33,7 +33,9 @@ optional arguments:
 
 ## 1. default
 
-search all Section contain Initialized data or Memory can read and print string literals
+Print string literals by searching all sections, which contains initialized data or has permission to read.
+You can specify `string_min` length using `--length` or `-l` option.
+`string_min` value is minimum length considered as string literals.
 
 ```
 $ ./src/pe.py ./testfile/ConsoleApplication1.exe
@@ -41,16 +43,16 @@ $ ./src/pe.py ./testfile/ConsoleApplication1.exe
 
 ## 2. specified section
 
-search specified Section and print string literals.  
-section name is what you can see using -v option.
-
+Search specified section and print string literals.  
+Section name is what you can see using `--verbose` option.
+You can also use `-l` option.
 ```
-$ ./src/pe.py ./testfile/ConsoleApplication1.exe
+$ ./src/pe.py ./testfile/ConsoleApplication1.exe -s .text
 ```
 
 ## 3. show header and section infomation
 
-you can see pe header information
+Show PE header information.
 
 ```
 $ ./src/pe.py ./testfile/ConsoleApplication1.exe -v
