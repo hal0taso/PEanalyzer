@@ -111,6 +111,7 @@ pcszCharacteristics = [
 ]
 
 
+# Structureクラスの派生クラスである各ヘッダの初期化、バナー表示、chr配列->文字列などの共通処理を定義
 class Structure(Structure):
 
     def banner(self):
@@ -125,9 +126,6 @@ class Structure(Structure):
     def __init__(self, r, ptr=0):
         self.sinit(r, ptr)
 
-
-# def sinit(s, data, ptr=0):
-#     io.BytesIO(data[ptr:ptr+sizeof(s)]).readinto(s)
 
 class aIMAGE_SECTION_HEADER:
 
@@ -189,13 +187,17 @@ class IMAGE_DOS_HEADER(Structure):
         ('e_lfanew',	LONG),
     ]
 
+    def _init__(self, r, ptr=0):
+        super().__init__(r, ptr)
+        if not self.e_magic == 0x5a4d:
+            print('[!] Error: e_magic does not matched "MZ')
+            exit()
+
     def info(self):
         self.banner()
         print('    e_magic:                     0x{:04x}'.format(self.e_magic))
         print('    e_lfanew:                    0x{:08x}'.format(self.e_lfanew))
-        if not self.e_magic == 0x5a4d:
-            print('[!] Error: e_magic does not matched "MZ')
-            exit()
+        
 
 
 class IMAGE_FILE_HEADER(Structure):

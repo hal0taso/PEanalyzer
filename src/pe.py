@@ -6,7 +6,7 @@ import argparse
 STRING_MIN = 4
 
 # バイナリデータから文字列抽出を行う
-def is_str(data, str_min=STRING_MIN):
+def print_str(data, str_min=STRING_MIN):
 
     '''
     extract string literal from binary data.
@@ -14,13 +14,12 @@ def is_str(data, str_min=STRING_MIN):
     if it is in ASCII code and length is larger than 1, it is considered as string literal.
     '''
     
-    # print('{:=^60}'.format('START STRING SEARCH'))
     lstr = []
     text = ''
     code = False
     for b in data:
         # ascii 文字の範囲内にあるかどうかの確認 
-        if 0x20 <= b <= 0x7e: #and (not code):
+        if 0x20 <= b <= 0x7e or b == 0x09:
             text += chr(b)
         elif len(text) >= str_min:
             lstr.append(text)
@@ -31,7 +30,7 @@ def is_str(data, str_min=STRING_MIN):
     else:
         for s in lstr:
             print(s)
-    # print('{:=^60}'.format('END'))
+            
 
 def is_initialized_data_section(a_ish, sec_num):
 
@@ -52,7 +51,7 @@ def is_initialized_data_section(a_ish, sec_num):
     
 
 
-def print_raw_data(data, ptr, size):
+def print_raw(data, ptr, size):
     '''
     目grepをしろ！！！
     '''
@@ -73,45 +72,33 @@ def search_str_each_section(r, a_ish, section_name=[],raw=False, str_min=STRING_
     
     for i in range(a_ish.section_num):
         
-        # セクション名の中にヌル文字が入ってるのを確認。
-        # print([chr(name) for name in ish.array[i].Name])
-        # name = ''.join([chr(name) for name in ish.array[i].Name])
-        # print('Name: {}, Length: {}'.format(name, len(name)))
-        
         # .textセクションから文字列を抽出
         if section_name:
             if a_ish.array[i].getName() in section_name:
                 #            print(''.join([chr(name) for name in ish.array[i].Name]))
                 if raw:
-                    print_raw_data(r,
+                    print_raw(r,
                                    ish.array[i].PointerToRawData,
                                    ish.array[i].SizeOfRawData)
                 else:
-                    is_str(
+                    print_str(
                         r[a_ish.array[i].PointerToRawData:a_ish.array[i].PointerToRawData
                           + a_ish.array[i].SizeOfRawData],
                         str_min)
         else:
             if raw:
-                print_raw_data(r,
+                print_raw(r,
                                a_ish.array[i].PointerToRawData,
                                a_ish.array[i].SizeOfRawData
                 )
             else:
-                is_str(
+                print_str(
                     r[a_ish.array[i].PointerToRawData:a_ish.array[i].PointerToRawData
                       + a_ish.array[i].SizeOfRawData],
                     str_min
                 )
 
 
-
-
-
-# 文字列の左側をヌルバイトでパディング
-def lfnull(s):
-    return '{:\0<8}'.format(s)
-    
 
 def main():
 
@@ -128,6 +115,8 @@ def main():
                         help="show information of each header or section.\n\
                         does not extract string literals.",
                         action="store_true")
+    parser.add_argument("-l", "--length", metavar='STRINGS_MIN',
+                        help="change string_min length", type=int)
 
     # グルーピングした奴ら
     search_group.add_argument("-s", "--section", nargs='+',
@@ -138,8 +127,6 @@ def main():
     search_group.add_argument("-A", "--all",
                         help="search string literals of all section",
                         action="store_true")
-    parser.add_argument("-l", "--length",
-                        help="change string_min length", type=int)
 
     # オプションの読み込み
     args = parser.parse_args()
@@ -153,16 +140,14 @@ def main():
 
     # まずはIMAGE_DOS_HEADERから
     idh = IMAGE_DOS_HEADER(r)
-    # sinit(idh, r)
-    
-    
     # PEヘッダの位置を取得
     ptr_pe_header = idh.e_lfanew
     # IMAGE_NT_HEADERS32を取得
     inh = IMAGE_NT_HEADERS32(r,ptr_pe_header)
-    # io.BytesIO(r[ptr_pe_header:ptr_pe_header + sizeof(IMAGE_NT_HEADERS32)]).readinto(inh)
+    # IMAGE_NT_HEADERS32中のメンバ構造体を変数に保存
     ifh = inh.FileHeader
     ioh = inh.OptionalHeader
+    # セクションテーブルのバイナリ上でのアドレスを取得
     section_table = ptr_pe_header + sizeof(IMAGE_NT_HEADERS32)
     a_ish = aIMAGE_SECTION_HEADER(ifh.NumberOfSections, r, section_table)
 
@@ -175,7 +160,7 @@ def main():
 
 
     if args.length:
-        STRING_MIN = args.length
+        STRINGS_MIN = args.length
         
     if args.section:
         search_str_each_section(r, a_ish, args.section, str_min=STRING_MIN)
@@ -190,6 +175,7 @@ def main():
 
     fd.close()
 
+    
     
 if __name__ == '__main__':
     main()
