@@ -33,7 +33,7 @@ optional arguments:
 
 ## 1. default
 
-search all Section Contain Initialized data or Memory can read and print string literals
+search all Section contain Initialized data or Memory can read and print string literals
 
 ```
 $ ./src/pe.py ./testfile/ConsoleApplication1.exe
