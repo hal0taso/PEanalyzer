@@ -30,9 +30,20 @@ def print_str(data, str_min=STRING_MIN):
     else:
         for s in lstr:
             print(s)
+
+
+# この関数はセクション中のバイナリデータをそのまま出力する
+# 呼び出し位置の都合上、print_strに対応した名前にしている
+def print_raw(data, ptr, size):
+    '''
+    目grepをしろ！！！
+    '''
+    
+    print(data[ptr:ptr + size])
+
             
 
-def is_initialized_data_section(a_ish, sec_num):
+def is_initialized_data(a_ish, sec_num):
 
     '''
     check each IMAGE_SECTION_HEADER.
@@ -51,14 +62,6 @@ def is_initialized_data_section(a_ish, sec_num):
     
 
 
-def print_raw(data, ptr, size):
-    '''
-    目grepをしろ！！！
-    '''
-    
-    print(data[ptr:ptr + size])
-
-
 
 def search_str_each_section(r, a_ish, section_name=[],raw=False, str_min=STRING_MIN):
 
@@ -74,8 +77,9 @@ def search_str_each_section(r, a_ish, section_name=[],raw=False, str_min=STRING_
         
         # .textセクションから文字列を抽出
         if section_name:
+            # if section_name is specified by using -s or -r option,
+            # 
             if a_ish.array[i].getName() in section_name:
-                #            print(''.join([chr(name) for name in ish.array[i].Name]))
                 if raw:
                     print_raw(r,
                                    ish.array[i].PointerToRawData,
@@ -170,7 +174,7 @@ def main():
         search_str_each_section(r, a_ish, str_min=STRING_MIN)
     elif not args.verbose:
         search_str_each_section(r, a_ish,
-                                is_initialized_data_section(a_ish, ifh.NumberOfSections),
+                                is_initialized_data(a_ish, ifh.NumberOfSections),
                                 str_min=STRING_MIN)
 
     fd.close()
