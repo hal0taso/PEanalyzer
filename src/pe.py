@@ -109,6 +109,9 @@ def search_str_each_section(r, a_ish, section_name=[],raw=False, str_min=STRING_
 
 def main():
 
+
+    global STRING_MIN
+    
     # set options using argparse library
     parser = argparse.ArgumentParser(description="Analyse PE excutable format and Extract string literals")
 
@@ -166,6 +169,7 @@ def main():
         a_ish.info()
 
 
+    
     if args.length:
         STRING_MIN = args.length
         
