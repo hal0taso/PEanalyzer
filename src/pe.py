@@ -5,6 +5,9 @@ import argparse
 
 STRING_MIN = 4
 
+# class pe:
+
+
 # バイナリデータから文字列抽出を行う
 def print_str(data, str_min=STRING_MIN):
 
@@ -164,7 +167,7 @@ def main():
 
 
     if args.length:
-        STRINGS_MIN = args.length
+        STRING_MIN = args.length
         
     if args.section:
         search_str_each_section(r, a_ish, args.section, str_min=STRING_MIN)
