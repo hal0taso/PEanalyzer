@@ -1,7 +1,7 @@
 # PEanalyzer
 analyze PE header and section.
 
-for Seccamp2017 and Self-Educating
+for [Seccamp2017](https://github.com/hal0taso/PEanalyzer/wiki) and Self-Educating
 
 # usage
 
