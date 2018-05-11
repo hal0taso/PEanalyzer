@@ -3,10 +3,9 @@ import sys
 from winnt_def import *
 import argparse
 
-STRING_MIN = 4
 
 # バイナリデータから文字列抽出を行う
-def print_str(data, str_min=STRING_MIN):
+def print_str(data, str_min=4):
 
     '''
     extract string literal from binary data.
@@ -18,10 +17,11 @@ def print_str(data, str_min=STRING_MIN):
     text = ''
     code = False
     for b in data:
-        # ascii 文字の範囲内にあるかどうかの確認 
         if 0x20 <= b <= 0x7e or b == 0x09:
+            # ascii 文字の範囲内にあるならtextに追加
             text += chr(b)
         elif len(text) >= str_min:
+            # 文字列が途切れていて, text の長さが str_min 以上なら lstr に追加し, text を初期化
             lstr.append(text)
             text = ''
         else:
@@ -63,7 +63,7 @@ def is_initialized_data(a_ish, sec_num):
 
 
 
-def search_str_each_section(r, a_ish, section_name=[],raw=False, str_min=STRING_MIN):
+def search_str_each_section(r, a_ish, section_name=[],raw=False, str_min=4):
 
     '''
     search_str_each_section(ish):
@@ -105,6 +105,7 @@ def search_str_each_section(r, a_ish, section_name=[],raw=False, str_min=STRING_
 
 
 def main():
+    STRING_MIN = 4
 
     # set options using argparse library
     parser = argparse.ArgumentParser(description="Analyse PE excutable format and Extract string literals")
@@ -119,7 +120,7 @@ def main():
                         help="show information of each header or section.\n\
                         does not extract string literals.",
                         action="store_true")
-    parser.add_argument("-l", "--length", metavar='STRINGS_MIN',
+    parser.add_argument("-l", "--length", metavar='STRING_MIN',
                         help="change string_min length", type=int)
 
     # グルーピングした奴ら
@@ -164,8 +165,8 @@ def main():
 
 
     if args.length:
-        STRINGS_MIN = args.length
-        
+        STRING_MIN = args.length
+
     if args.section:
         search_str_each_section(r, a_ish, args.section, str_min=STRING_MIN)
     elif args.raw:
